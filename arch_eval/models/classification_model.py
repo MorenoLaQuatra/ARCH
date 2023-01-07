@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from typing import List, Union, Tuple
+from tqdm import tqdm
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 class ClassificationModel:
@@ -58,7 +59,7 @@ class ClassificationModel:
 
     def train_epoch(
         self,
-        train_loader,
+        train_dataloader,
         optimizer,
         criterion,
         device,
@@ -66,7 +67,7 @@ class ClassificationModel:
     ):
         """
         Train the model for one epoch.
-        :param train_loader: training data loader
+        :param train_dataloader: training data loader
         :param optimizer: optimizer
         :param criterion: loss function
         :param device: device
@@ -74,28 +75,38 @@ class ClassificationModel:
         """
         self.model.train()
         running_loss = 0.0
-        for i, (inputs, labels) in enumerate(train_loader):
+        for i, (inputs, labels) in enumerate(train_dataloader):
             inputs = inputs.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
             outputs = self.model(inputs)
-            loss = criterion(outputs, labels)
+            try:
+                loss = criterion(outputs, labels)
+            except:
+                # If the loss function is not compatible with labels, use one-hot encoding - 0 to num_classes-1
+                labels_one_hot = torch.nn.functional.one_hot(labels, num_classes=self.num_classes)
+                print(outputs.shape)
+                print(labels_one_hot.shape)
+                loss = criterion(outputs, labels_one_hot)
+
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-        return running_loss / len(train_loader)
+        return running_loss / len(train_dataloader)
     
     def train(
         self,
-        train_loader,
-        val_loader,
-        device,
+        train_dataloader,
+        val_dataloader,
+        learning_rate: float = 1e-3,
+        device: str = "cpu",
+        max_num_epochs: int = 10,
         **kwargs,
     ):
         """
         Train the model.
-        :param train_loader: training data loader
-        :param val_loader: validation data loader
+        :param train_dataloader: training data loader
+        :param val_dataloader: validation data loader
         :param device: device to use for training (cpu or cuda)
         :return: best model and metrics
         """
@@ -105,16 +116,17 @@ class ClassificationModel:
         best_val_loss = np.inf
         best_val_acc = 0.0
         best_val_f1 = 0.0
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.criterion = torch.nn.CrossEntropyLoss()
+        self.model = self.model.to(device)
 
-        for epoch in range(self.num_epochs):
+        for epoch in tqdm(range(max_num_epochs), desc="Epochs"):
             # train for one epoch
             train_loss = self.train_epoch(
-                train_loader, optimizer, self.criterion, device
+                train_dataloader, optimizer, self.criterion, device
             )
             # evaluate on validation set
-            val_loss, val_acc, val_f1 = self.evaluate(val_loader, device)
+            val_loss, val_acc, val_f1 = self.evaluate(val_dataloader, device)
             # save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -122,12 +134,10 @@ class ClassificationModel:
                 best_val_f1 = val_f1
                 best_model = self.model.state_dict()
 
-            print(f"Epoch {epoch + 1}/{self.num_epochs}")
-            print(f"Train loss: {train_loss:.4f}")
-            print(f"Val loss: {val_loss:.4f}")
-            print(f"Val acc: {val_acc:.4f}")
-            print(f"Val f1: {val_f1:.4f}")
-            print()
+            # report metrics in tqdm
+            tqdm.write(
+                f"Epoch {epoch + 1}/{max_num_epochs} - Train loss: {train_loss:.4f} - Val loss: {val_loss:.4f} - Val acc: {val_acc:.4f} - Val f1: {val_f1:.4f}"
+            )
 
         # load best model
         self.model.load_state_dict(best_model)
@@ -161,5 +171,5 @@ class ClassificationModel:
         return (
             running_loss / len(data_loader),
             accuracy_score(y_true, y_pred),
-            f1_score(y_true, y_pred),
+            f1_score(y_true, y_pred, average="macro"),
         )

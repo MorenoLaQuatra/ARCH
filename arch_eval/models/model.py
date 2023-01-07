@@ -16,7 +16,7 @@ class Model:
         for key, value in kwargs.items():
             setattr(self, key, value)
         
-
+        
     def get_embeddings(
         self,
         audio: np.ndarray,

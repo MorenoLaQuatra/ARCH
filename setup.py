@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='arch',
+    name='arch_eval',
     version='1.0',
     description='ARCH: Audio Representations benCHmark',
-    py_modules=["arch"],
-    packages=find_packages(include=['arch', 'arch.*']),
+    py_modules=["arch_eval"],
+    packages=find_packages(include=['arch_eval', 'arch_eval.*']),
     classifiers={
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",

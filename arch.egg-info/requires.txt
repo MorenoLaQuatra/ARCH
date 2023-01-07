@@ -1,0 +1,13 @@
+numpy
+pandas
+scipy
+scikit-learn
+tqdm
+torch
+torchaudio
+librosa
+soundfile
+pydub
+
+[dev]
+pytest>=3.7
