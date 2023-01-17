@@ -10,3 +10,5 @@ python evaluate_hf_models.py --model facebook/hubert-base-ls960 --device cuda > 
 python evaluate_hf_models.py --model facebook/hubert-large-ll60k --device cuda > results/hubert-large-ll60k.txt
 python evaluate_hf_models.py --model facebook/hubert-xlarge-ll60k --device cuda > results/hubert-xlarge-ll60k.txt
 
+python evaluate_hf_models.py --model facebook/data2vec-audio-base --device cuda > results/data2vec-audio-base.txt
+python evaluate_hf_models.py --model facebook/data2vec-audio-large --device cuda > results/data2vec-audio-large.txt
