@@ -45,3 +45,24 @@ class Model:
         :return: a tensor of shape (n_frames, embedding_size)
         """
         raise NotImplementedError
+
+    def get_classification_embedding_size(self):
+        """
+        Get the embedding size for classification. This method should be implemented by the child class.
+        :return: an integer
+        """
+        raise NotImplementedError
+
+    def get_token_embedding_size(self):
+        """
+        Get the embedding size for token embeddings. This method should be implemented by the child class.
+        :return: an integer
+        """
+        raise NotImplementedError
+
+    def get_sampling_rate(self):
+        """
+        Get the sampling rate. This method should be implemented by the child class.
+        :return: an integer
+        """
+        raise NotImplementedError

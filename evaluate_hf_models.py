@@ -9,19 +9,36 @@ from arch_eval import ESC50
 from arch_eval import FMASmall
 from arch_eval import RAVDESS
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-#model_tag = "facebook/wav2vec2-base"
-model_tag = "facebook/wav2vec2-large-960h"
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', type=str, default='facebook/wav2vec2-large-960h')
+parser.add_argument('--device', type=str, default='cuda')
+parser.add_argument('--verbose', default=False, action = 'store_true')
+
+args = parser.parse_args()
 
 print("------------------------------------")
-print(f"Evaluating model: {model_tag}")
+print(f"Evaluating model: {args.model}")
 print("------------------------------------")
+
+'''
+************************************************************************************************
+*                                       Setting parameters                                     *
+************************************************************************************************
+'''
 
 # Load model
-audio_model = Wav2Vec2Model.from_pretrained(model_tag)
-feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_tag)
-audio_model = audio_model.to(DEVICE)
-VERBOSE = False
+audio_model = Wav2Vec2Model.from_pretrained(args.model)
+feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(args.model)
+audio_model = audio_model.to(args.device)
+
+
+'''
+************************************************************************************************
+*                                         Model Wrapping                                       *
+************************************************************************************************
+'''
 
 # implement a child class of Model
 class Wav2Vec2ModelWrapper(Model):
@@ -74,7 +91,6 @@ class Wav2Vec2ModelWrapper(Model):
         # return the size of the embedding layer
         return self.model.config.hidden_size
 
-# create a model instance
 
 
 '''
@@ -82,16 +98,16 @@ class Wav2Vec2ModelWrapper(Model):
 *                                          ESC50                                               *
 ************************************************************************************************
 '''
-model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, DEVICE, max_length=5*16_000)
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=5*16_000)
 
 ESC50_DATASET_PATH = "/data1/mlaquatra/datasets/audio_datasets/esc50/"
-evaluator_esc50 = ESC50(path=ESC50_DATASET_PATH, verbose=VERBOSE)
-res_esc50 = evaluator_esc50.evaluate(model, mode="linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+evaluator_esc50 = ESC50(path=ESC50_DATASET_PATH, verbose=args.verbose)
+res_esc50 = evaluator_esc50.evaluate(model, mode="linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- ESC50 LINEAR -----------------")
 for metric, value in res_esc50.items():
     print (f"{metric}: {value}")
 
-res_esc50 = evaluator_esc50.evaluate(model, mode="non-linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+res_esc50 = evaluator_esc50.evaluate(model, mode="non-linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- ESC50 NON-LINEAR -----------------")
 for metric, value in res_esc50.items():
     print (f"{metric}: {value}")
@@ -103,21 +119,21 @@ for metric, value in res_esc50.items():
 ************************************************************************************************
 '''
 
-model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, DEVICE, max_length=30*16_000)
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=30*16_000)
 
 FMA_DATASET_PATH = "/data1/mlaquatra/datasets/audio_datasets/fma_small/"
 FMA_METADATA_PATH = "/data1/mlaquatra/datasets/audio_datasets/fma_metadata/"
 evaluator_fma = FMASmall(
     config_path = FMA_METADATA_PATH,
     audio_files_path = FMA_DATASET_PATH,
-    verbose=VERBOSE
+    verbose=args.verbose
 )
-res_fma = evaluator_fma.evaluate(model, mode="linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+res_fma = evaluator_fma.evaluate(model, mode="linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- FMA-small LINEAR -----------------")
 for metric, value in res_fma.items():
     print (f"{metric}: {value}")
 
-res_fma = evaluator_fma.evaluate(model, mode="non-linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+res_fma = evaluator_fma.evaluate(model, mode="non-linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- FMA-small NON-LINEAR -----------------")
 for metric, value in res_fma.items():
     print (f"{metric}: {value}")
@@ -128,16 +144,23 @@ for metric, value in res_fma.items():
 ************************************************************************************************
 '''
 
-model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, DEVICE, max_length=5*16_000)
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=5*16_000)
 
 RAVDESS_DATASET_PATH = "/data1/mlaquatra/datasets/audio_datasets/ravdess/"
-evaluator_ravdess = RAVDESS(path=RAVDESS_DATASET_PATH, verbose=VERBOSE)
-res_ravdess = evaluator_ravdess.evaluate(model, mode="linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+evaluator_ravdess = RAVDESS(path=RAVDESS_DATASET_PATH, verbose=args.verbose)
+res_ravdess = evaluator_ravdess.evaluate(model, mode="linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- RAVDESS LINEAR -----------------")
 for metric, value in res_ravdess.items():
     print (f"{metric}: {value}")
 
-res_ravdess = evaluator_ravdess.evaluate(model, mode="non-linear", device=DEVICE, batch_size=32, max_num_epochs=100)
+res_ravdess = evaluator_ravdess.evaluate(model, mode="non-linear", device=args.device, batch_size=32, max_num_epochs=100)
 print ("----------------- RAVDESS NON-LINEAR -----------------")
 for metric, value in res_ravdess.items():
     print (f"{metric}: {value}")
+
+
+'''
+python evaluate_hf_models.py \
+    --model facebook/wav2vec2-base \
+    --device cuda 
+'''

@@ -16,18 +16,23 @@ class ClassificationModel:
         activation: str = "relu",
         dropout: float = 0.1,
         num_classes: int = 2,
+        verbose: bool = False,
         **kwargs,
     ):
         """
         :param layers: list of layer sizes
-        :param activation: activation function
+        :param input_embedding_size: size of the input embedding
+        :param activation: activation function that will be used for non-linear evaluation
         :param dropout: dropout rate
+        :param num_classes: number of classes
+        :param verbose: whether to print progress
         """
         self.layers = layers
         self.input_embedding_size = input_embedding_size
         self.activation = activation
         self.dropout = dropout
         self.num_classes = num_classes
+        self.verbose = verbose
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -85,8 +90,6 @@ class ClassificationModel:
             except:
                 # If the loss function is not compatible with labels, use one-hot encoding - 0 to num_classes-1
                 labels_one_hot = torch.nn.functional.one_hot(labels, num_classes=self.num_classes)
-                print(outputs.shape)
-                print(labels_one_hot.shape)
                 loss = criterion(outputs, labels_one_hot)
 
             loss.backward()
@@ -117,6 +120,7 @@ class ClassificationModel:
         best_val_acc = 0.0
         best_val_f1 = 0.0
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.model = self.model.to(device)
 
@@ -125,6 +129,7 @@ class ClassificationModel:
             train_loss = self.train_epoch(
                 train_dataloader, optimizer, self.criterion, device
             )
+            scheduler.step()
             # evaluate on validation set
             val_loss, val_acc, val_f1 = self.evaluate(val_dataloader, device)
             # save best model
@@ -135,9 +140,10 @@ class ClassificationModel:
                 best_model = self.model.state_dict()
 
             # report metrics in tqdm
-            tqdm.write(
-                f"Epoch {epoch + 1}/{max_num_epochs} - Train loss: {train_loss:.4f} - Val loss: {val_loss:.4f} - Val acc: {val_acc:.4f} - Val f1: {val_f1:.4f}"
-            )
+            if self.verbose:
+                tqdm.write(
+                    f"Epoch {epoch + 1}/{max_num_epochs} - Train loss: {train_loss:.4f} - Val loss: {val_loss:.4f} - Val acc: {val_acc:.4f} - Val f1: {val_f1:.4f}"
+                )
 
         # load best model
         self.model.load_state_dict(best_model)
@@ -145,7 +151,7 @@ class ClassificationModel:
 
     def evaluate(
         self,
-        data_loader,
+        dataloader,
         device,
         **kwargs,
     ):
@@ -160,7 +166,7 @@ class ClassificationModel:
         y_true = []
         y_pred = []
         with torch.no_grad():
-            for i, (inputs, labels) in enumerate(data_loader):
+            for i, (inputs, labels) in enumerate(dataloader):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs = self.model(inputs)
@@ -169,7 +175,7 @@ class ClassificationModel:
                 y_true.extend(labels.cpu().numpy())
                 y_pred.extend(np.argmax(outputs.cpu().numpy(), axis=1))
         return (
-            running_loss / len(data_loader),
+            running_loss / len(dataloader),
             accuracy_score(y_true, y_pred),
             f1_score(y_true, y_pred, average="macro"),
         )
