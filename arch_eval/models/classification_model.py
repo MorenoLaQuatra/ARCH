@@ -85,12 +85,12 @@ class ClassificationModel:
             labels = labels.to(device)
             optimizer.zero_grad()
             outputs = self.model(inputs)
-            try:
-                loss = criterion(outputs, labels)
-            except:
-                # If the loss function is not compatible with labels, use one-hot encoding - 0 to num_classes-1
-                labels_one_hot = torch.nn.functional.one_hot(labels, num_classes=self.num_classes)
-                loss = criterion(outputs, labels_one_hot)
+
+            # print shapes
+            print ("Output shape: ", outputs.shape)
+            print ("Labels shape: ", labels.shape)
+            
+            loss = criterion(outputs, labels)
 
             loss.backward()
             optimizer.step()
@@ -119,7 +119,7 @@ class ClassificationModel:
         best_val_loss = np.inf
         best_val_acc = 0.0
         best_val_f1 = 0.0
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.model = self.model.to(device)

@@ -3,8 +3,9 @@ import torch
 import numpy as np
 import soundfile as sf
 
-from arch_eval import Model, ClassificationModel
+from arch_eval import Model, ClassificationModel, SequenceClassificationModel
 from arch_eval import ClassificationDataset
+from arch_eval import SequenceClassificationDataset
 
 from torch.utils.data import DataLoader
 
@@ -63,6 +64,7 @@ for audio in audios:
     print ("Embeddings shape:", embeddings.shape)
     print ("Expected shape:", (int(10_000 / 20.00001), 768))
 
+'''
 # create a dataset
 dataset = ClassificationDataset(
     audios = audios,
@@ -96,3 +98,118 @@ classification_model.train(
     epochs = 10,
     device = DEVICE,
 )
+'''
+
+'''
+TOKEN EMBEDDINGS
+
+'''
+
+audios = torch.randn(8, 16_000 * 10)
+# labels shape = (batch_size, number of tokens, number of classes)
+labels = torch.randint(0, 10, (8, int(10 * 1000 / 20.00001),))
+
+
+
+print ("Test audios shape:", audios.shape)
+print ("Test labels shape:", labels.shape)
+
+# create a dataset
+dataset = SequenceClassificationDataset(
+    audios = audios,
+    labels = labels,
+    model = model,
+    sampling_rate = 16_000,
+    precompute_embeddings = True,
+    verbose = True,
+)
+
+# validation dataset
+
+dataset_val = SequenceClassificationDataset(
+    audios = torch.randn(8, 16_000 * 10),
+    labels = torch.randint(0, 10, (8, int(10 * 1000 / 20.00001), )),
+    model = model,
+    sampling_rate = 16_000,
+    precompute_embeddings = True,
+    verbose = True,
+)
+
+# create a dataloader
+train_dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+val_dataloader = DataLoader(dataset_val, batch_size=4, shuffle=False)
+
+sequence_classification_model = SequenceClassificationModel(
+    layers = [], # linear layers
+    input_embedding_size = model.get_token_embedding_size(), # size of the embeddings
+    activation="relu",
+    dropout=0.1,
+    num_classes=10, # number of classes
+)
+
+# train the model
+sequence_classification_model.train(
+    train_dataloader = train_dataloader,
+    val_dataloader = val_dataloader,
+)
+
+# evaluate the model
+sequence_classification_model.evaluate(val_dataloader)
+
+
+
+# Multi-class and multi-label classification
+print("\n\n------ Multi-class and multi-label classification -------\n\n")
+
+audios = torch.randn(8, 16_000 * 10)
+# labels shape = (batch_size, number of tokens, number of classes)
+labels = torch.randint(0, 2, (8, int(10 * 1000 / 20.00001), 10), dtype=torch.float32)
+
+print ("Test audios shape:", audios.shape)
+print ("Test labels shape:", labels.shape)
+
+# create a dataset
+dataset = SequenceClassificationDataset(
+    audios = audios,
+    labels = labels,
+    model = model,
+    sampling_rate = 16_000,
+    precompute_embeddings = True,
+    verbose = True,
+)
+
+# validation dataset
+
+dataset_val = SequenceClassificationDataset(
+    audios = torch.randn(8, 16_000 * 10),
+    labels = torch.randint(0, 1, (8, int(10 * 1000 / 20.00001), 10), dtype=torch.float32),
+    model = model,
+    sampling_rate = 16_000,
+    precompute_embeddings = True,
+    verbose = True,
+)
+
+# create a dataloader
+train_dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+val_dataloader = DataLoader(dataset_val, batch_size=4, shuffle=False)
+
+sequence_classification_model = SequenceClassificationModel(
+    layers = [], # linear layers
+    input_embedding_size = model.get_token_embedding_size(), # size of the embeddings
+    activation="relu",
+    dropout=0.1,
+    num_classes=10, # number of classes
+    is_multilabel = True,
+)
+
+# train the model
+sequence_classification_model.train(
+    train_dataloader = train_dataloader,
+    val_dataloader = val_dataloader,
+)
+
+# evaluate the model
+sequence_classification_model.evaluate(val_dataloader)
+
+
+

@@ -21,7 +21,7 @@ The benchmark includes the following tasks and, for each task, the corresponding
 - Classification
     - [ESC-50](https://github.com/karolpiczak/ESC-50): `esc50`
 - Sequence tagging
-    - [Mivia Audio Events Dataset](https://mivia.unisa.it/datasets/audio-analysis/mivia-audio-events/): `mivia_audio_events`
+    - [Mivia Audio Events Dataset](https://mivigdowna.unisa.it/datasets/audio-analysis/mivia-audio-events/): `mivia_audio_events`
     - [Mivia road Audio Events Dataset](https://mivia.unisa.it/datasets/audio-analysis/mivia-road-audio-events-data-set/): `mivia_road_audio_events`
 
 
@@ -76,6 +76,50 @@ rm Audio_Speech_Actors_01-24.zip
 
 
 mv Audio_Speech_Actors_01-24 ravdess
+```
+
+### MUSAN - NOT USED AT THE MOMENT
+
+```bash
+wget https://www.openslr.org/resources/17/musan.tar.gz
+tar -xvzf musan.tar.gz
+rm musan.tar.gz
+```
+
+### MUSDB18
+
+```bash
+wget https://zenodo.org/record/3338373/files/musdb18hq.zip
+unzip musdb18hq.zip
+rm musdb18hq.zip
+```
+
+### Mivia Audio Events Dataset
+
+To download the dataset, you need to register on the [Mivia](https://mivia.unisa.it/) website. Both for the audio events dataset and the road audio events dataset, you can download the dataset for free if used for research purposes.
+
+```bash
+# download the dataset
+unzip mivia_audio_events.zip
+rm mivia_audio_events.zip
+```
+
+# Mivia Road Audio Events Dataset
+
+Similarly to the audio events dataset, you need to register on the [Mivia](https://mivia.unisa.it/) website to download the dataset.
+
+```bash
+# download the dataset
+unzip MIVIA_ROAD_DB1.zip
+rm MIVIA_ROAD_DB1.zip
+```
+
+# MIR-1K
+
+```bash
+wget http://mirlab.org/dataset/public/MIR-1K.zip
+unzip MIR-1K.zip
+rm MIR-1K.zip
 ```
 
 
