@@ -85,10 +85,6 @@ class ClassificationModel:
             labels = labels.to(device)
             optimizer.zero_grad()
             outputs = self.model(inputs)
-
-            # print shapes
-            print ("Output shape: ", outputs.shape)
-            print ("Labels shape: ", labels.shape)
             
             loss = criterion(outputs, labels)
 
@@ -131,7 +127,12 @@ class ClassificationModel:
             )
             scheduler.step()
             # evaluate on validation set
-            val_loss, val_acc, val_f1 = self.evaluate(val_dataloader, device)
+            metrics = self.evaluate(val_dataloader, device)
+            
+            val_loss = metrics["loss"]
+            val_acc = metrics["accuracy"]
+            val_f1 = metrics["f1"]
+
             # save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -147,7 +148,12 @@ class ClassificationModel:
 
         # load best model
         self.model.load_state_dict(best_model)
-        return best_model, (best_val_loss, best_val_acc, best_val_f1)
+        best_val_metrics = {
+            "loss": best_val_loss,
+            "acc": best_val_acc,
+            "f1": best_val_f1,
+        }
+        return best_model, best_val_metrics
 
     def evaluate(
         self,
@@ -174,8 +180,8 @@ class ClassificationModel:
                 running_loss += loss.item()
                 y_true.extend(labels.cpu().numpy())
                 y_pred.extend(np.argmax(outputs.cpu().numpy(), axis=1))
-        return (
-            running_loss / len(dataloader),
-            accuracy_score(y_true, y_pred),
-            f1_score(y_true, y_pred, average="macro"),
-        )
+        return {
+            "loss": running_loss / len(dataloader),
+            "accuracy": accuracy_score(y_true, y_pred),
+            "f1": f1_score(y_true, y_pred, average="macro"),
+        }

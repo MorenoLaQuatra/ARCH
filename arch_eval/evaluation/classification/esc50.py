@@ -194,26 +194,22 @@ class ESC50():
             )
 
             # evaluate the model
-            loss, accuracy, f1_score = clf_model.evaluate(
+            metrics = clf_model.evaluate(
                 dataloader=test_dataloader,
                 device=device,
             )
+            
             if self.verbose:
-                print(f"Loss: {loss}")
-                print(f"Accuracy: {accuracy}")
-                print(f"F1 score: {f1_score}")
+                for metric in metrics.keys():
+                    print(f"{metric}: {metrics[metric]}")
                 
-            results[fold] = {
-                'loss': loss,
-                'accuracy': accuracy,
-                'f1_score': f1_score,
-            }
+            results[fold] = metrics
 
         # compute the average results
         avg_results = {
             'loss': np.mean([results[fold]['loss'] for fold in results.keys()]),
             'accuracy': np.mean([results[fold]['accuracy'] for fold in results.keys()]),
-            'f1_score': np.mean([results[fold]['f1_score'] for fold in results.keys()]),
+            'f1': np.mean([results[fold]['f1'] for fold in results.keys()]),
         }
 
         return avg_results

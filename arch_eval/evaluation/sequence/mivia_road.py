@@ -345,16 +345,12 @@ class MiviaRoad():
             )
 
             # evaluate on test set
-            loss, m1, m2 = seq_clf_model.evaluate(
+            eval_metrics = seq_clf_model.evaluate(
                 data_loader = test_dataloader,
                 device = device
             )
 
-            results[fold] = {
-                'loss': loss,
-                'm1': m1,
-                'm2': m2,
-            }
+            results[fold] = eval_metrics # dict with "loss": loss, "metric": metric ...
 
             if self.verbose:
                 print(f'Fold {fold} results:')
@@ -363,11 +359,10 @@ class MiviaRoad():
             
 
         # compute average results
-        avg_results = {
-            'loss': np.mean([results[fold]['loss'] for fold in results.keys()]),
-            'm1': np.mean([results[fold]['m1'] for fold in results.keys()]),
-            'm2': np.mean([results[fold]['m2'] for fold in results.keys()]),
-        }
+        metrics_keys = results[list(results.keys())[0]].keys()
+        avg_results = {}
+        for metric in metrics_keys:
+            avg_results[metric] = np.mean([results[k][metric] for k in results.keys()])
 
         if self.verbose:
             print('Average results:')

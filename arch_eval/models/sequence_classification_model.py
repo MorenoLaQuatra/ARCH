@@ -130,6 +130,7 @@ class SequenceClassificationModel:
         :param labels: labels
         :return: DER
         """
+        pass
         
     
     def train(
@@ -174,10 +175,12 @@ class SequenceClassificationModel:
             )
 
             scheduler.step()
-            val_loss, _, _ = self.evaluate(
+            val_metrics = self.evaluate(
                 val_dataloader,
                 device,
+                return_predictions=False,
             )
+            val_loss = val_metrics["loss"]
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 # TODO: include additional metrics for sequence tagging (e.g., diarization error rate)
@@ -189,13 +192,15 @@ class SequenceClassificationModel:
                 )
 
         self.model.load_state_dict(best_model)
-        return best_model, (best_val_loss) # TODO: include additional metrics for sequence tagging (e.g., diarization error rate) 
+        metrics = {"val_loss": best_val_loss} # TODO: include additional metrics for sequence tagging (e.g., diarization error rate)
+        return best_model, metrics
 
 
     def evaluate(
         self,
         data_loader,
         device: str = "cpu",
+        return_predictions: bool = False,
         **kwargs,
     ):
         """
@@ -229,10 +234,16 @@ class SequenceClassificationModel:
                 running_loss += loss.item()
                 y_true.extend(labels.tolist())
                 y_pred.extend(torch.argmax(outputs, dim=1).tolist())
-        return (
-            running_loss / len(data_loader),
-            0.0, #placeholder
-            0.0, #placeholder
-            # TODO: include additional metrics for sequence tagging (e.g., diarization error rate)
-        )
+
+        metrics = {
+            "loss": running_loss / len(data_loader),
+        }
+        if return_predictions:
+            predictions = {
+                "y_true": y_true,
+                "y_pred": y_pred,
+            }
+            return metrics, predictions
+        else:
+            return metrics
         

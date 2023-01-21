@@ -68,15 +68,12 @@ class Wav2Vec2ModelWrapper(Model):
     def get_token_embeddings(self, audio: np.ndarray, **kwargs):
         chunks = []
         for i in range(0, len(audio), self.max_length):
-            print(f"i: {i} - {i + self.max_length}")
             if i + self.max_length >= len(audio):
                 chunk = audio[i:]
             else:
                 # add overlap for approx problem - 20ms = 1 frame = 320 samples
-                start = i
-                end = i + self.max_length + int(0.02*16_000)
-                print(f"start: {start}, end: {end}")
-                chunk = audio[start:end]
+                overlap = int(0.02*16_000)
+                chunk = audio[i: i + self.max_length + overlap]
             inputs = self.feature_extractor(
                 chunk, 
                 sampling_rate=16_000, 

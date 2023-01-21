@@ -167,15 +167,15 @@ class FMASmall():
         )
 
         # evaluate the model
-        loss, accuracy, f1_score = clf_model.evaluate(
+        metrics = clf_model.evaluate(
             dataloader = test_dataloader,
             device = device,
         )
 
         return {
-            'loss': loss,
-            'accuracy': accuracy,
-            'f1_score': f1_score,
+            'loss': metrics['loss'],
+            'accuracy': metrics['accuracy'],
+            'f1': metrics['f1'],
         }
 
 
