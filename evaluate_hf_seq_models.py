@@ -6,15 +6,19 @@ import soundfile as sf
 from arch_eval import Model, SequenceClassificationModel
 from arch_eval import SequenceClassificationDataset
 from arch_eval import MiviaRoad
+from arch_eval import MIR1K
+from arch_eval import Jamendo
+
 
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='facebook/wav2vec2-base')
+parser.add_argument('--model', type=str, default='microsoft/wavlm-base')
 parser.add_argument('--device', type=str, default='cuda')
 parser.add_argument('--max_epochs', type=int, default=200)
 parser.add_argument('--verbose', default=False, action = 'store_true')
 parser.add_argument('--tsv_logging_file', type=str, default='results/hf_seq_models.tsv')
+parser.add_argument('--model_frame_length_ms', type=float, default=20.00001)
 args = parser.parse_args()
 
 print("------------------------------------")
@@ -81,7 +85,7 @@ class Wav2Vec2ModelWrapper(Model):
             ).input_values
             inputs = inputs.to(self.device)
             token_embeddings = self.model(inputs).last_hidden_state
-            chunks.append(token_embeddings.squeeze())
+            chunks.append(token_embeddings.squeeze().cpu())
 
         return torch.cat(chunks, dim=0)
 
@@ -105,7 +109,8 @@ class Wav2Vec2ModelWrapper(Model):
 *                                          MIVIA                                               *
 ************************************************************************************************
 '''
-model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=5*16_000)
+
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=30*16_000)
 MIVIA_ROAD_PATH = "/data1/mlaquatra/datasets/audio_datasets/MIVIA_ROAD_DB1/"
 mivia_road_eval = MiviaRoad(
     path=MIVIA_ROAD_PATH,
@@ -114,12 +119,61 @@ mivia_road_eval = MiviaRoad(
 
 res_mivia = mivia_road_eval.evaluate(
     model = model,
-    mode = "linear",
+    mode = "non-linear",
     device = args.device,
     batch_size = 32,
     max_num_epochs = args.max_epochs,
-    model_frame_length_ms = 20.00001, # 20ms ish (wav2vec2 default)
+    model_frame_length_ms = args.model_frame_length_ms,
 )
 
 for k, v in res_mivia.items():
     print(f"{k}: {v}")
+
+
+'''
+************************************************************************************************
+*                                          MIR1K                                               *
+************************************************************************************************
+'''
+
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=30*16_000)
+MIR1K_PATH = "/data1/mlaquatra/datasets/audio_datasets/MIR-1K/"
+mir1k_eval = MIR1K(
+    path=MIR1K_PATH,
+    verbose=args.verbose
+)
+
+res_mir1k = mir1k_eval.evaluate(
+    model = model,
+    mode = "non-linear",
+    device = args.device,
+    batch_size = 32,
+    max_num_epochs = args.max_epochs,
+    model_frame_length_ms = args.model_frame_length_ms,
+)
+
+
+
+'''
+************************************************************************************************
+*                                          Jamendo                                            *
+************************************************************************************************
+'''
+
+'''
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=10*16_000)
+JAMENDO_PATH = "/data1/mlaquatra/datasets/audio_datasets/jamendo/"
+jamendo_eval = Jamendo(
+    path=JAMENDO_PATH,
+    verbose=args.verbose
+)
+
+res_jamendo = jamendo_eval.evaluate(
+    model = model,
+    mode = "linear",
+    device = args.device,
+    batch_size = 1,
+    max_num_epochs = args.max_epochs,
+    model_frame_length_ms = 20.00001, # 20ms ish (wav2vec2 default)
+)
+'''

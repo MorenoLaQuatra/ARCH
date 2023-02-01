@@ -8,11 +8,12 @@ from arch_eval import ClassificationDataset
 from arch_eval import ESC50 
 from arch_eval import FMASmall
 from arch_eval import RAVDESS
+from arch_eval import US8K
 
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='facebook/wav2vec2-large-960h')
+parser.add_argument('--model', type=str, default='facebook/wav2vec2-base')
 parser.add_argument('--device', type=str, default='cuda')
 parser.add_argument('--max_epochs', type=int, default=200)
 parser.add_argument('--verbose', default=False, action = 'store_true')
@@ -169,6 +170,98 @@ if args.verbose:
 tsv_lines.append(f"{args.model}\t{model_parameters}\tFalse\tesc50\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}")
 
 
+
+'''
+************************************************************************************************
+*                                          US8K                                                *
+************************************************************************************************
+'''
+model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=5*16_000)
+US8K_DATASET_PATH = "/data1/mlaquatra/datasets/audio_datasets/UrbanSound8K/"
+evaluator_us8k = US8K(path=US8K_DATASET_PATH, verbose=args.verbose)
+
+res = []
+for i in range(args.n_iters):
+    if args.verbose:
+        print(f"Iteration {i+1}/{args.n_iters}")
+        print ("----------------- US8K LINEAR -----------------")
+
+    res_us8k = evaluator_us8k.evaluate(model, mode="linear", device=args.device, batch_size=32, max_num_epochs=args.max_epochs)
+    
+    if args.verbose:
+        print("Iteration: ", i+1)
+        for metric, value in res_us8k.items():
+            print (f"{metric}: {value}")
+
+    res.append(res_us8k)
+
+# compute mean and std of each metric over all iterations
+res_mean = {}
+res_std = {}
+for metric in res[0].keys():
+    res_mean[metric] = np.mean([r[metric] for r in res])
+    res_std[metric] = np.std([r[metric] for r in res])
+
+if args.verbose:
+    print ("----------------- US8K LINEAR -----------------")
+    for metric, value in res_mean.items():
+        print (f"{metric}: {value} +- {res_std[metric]}")
+
+
+# create a tsv line: model_tag, size, is_linear, dataset_name, mean_accuracy, std_accuracy, mean_f1, std_f1
+tsv_lines.append(f"{args.model}\t{model_parameters}\tTrue\tus8k\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}")
+
+res = []
+for i in range(args.n_iters):
+    if args.verbose:
+        print(f"Iteration {i+1}/{args.n_iters}")
+        print ("----------------- US8K NON-LINEAR -----------------")
+
+    res_us8k = evaluator_us8k.evaluate(model, mode="non-linear", device=args.device, batch_size=32, max_num_epochs=args.max_epochs)
+
+    if args.verbose:
+        print("Iteration: ", i+1)
+        for metric, value in res_us8k.items():
+            print (f"{metric}: {value}")
+
+    res.append(res_us8k)
+
+# compute mean and std of each metric over all iterations
+res_mean = {}
+res_std = {}
+for metric in res[0].keys():
+    res_mean[metric] = np.mean([r[metric] for r in res])
+    res_std[metric] = np.std([r[metric] for r in res])
+
+if args.verbose:
+    print ("----------------- US8K NON-LINEAR -----------------")
+    for metric, value in res_mean.items():
+        print (f"{metric}: {value} +- {res_std[metric]}")
+
+# create a tsv line: model_tag, size, is_linear, dataset_name, mean_accuracy, std_accuracy, mean_f1, std_f1
+tsv_lines.append(f"{args.model}\t{model_parameters}\tFalse\tus8k\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 '''
 ************************************************************************************************
 *                                          FMA-small                                           *
@@ -245,6 +338,28 @@ if args.verbose:
 
 # create a tsv line: model_tag, size, is_linear, dataset_name, mean_accuracy, std_accuracy, mean_f1, std_f1
 tsv_lines.append(f"{args.model}\t{model_parameters}\tFalse\tfma_small\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

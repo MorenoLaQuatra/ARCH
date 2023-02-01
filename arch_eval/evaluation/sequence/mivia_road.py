@@ -39,7 +39,7 @@ class MiviaRoad():
         # the xml file contains the annotations for the audio file
         # the audio files are in the v2 sub subfolder
 
-        self.labels = set()
+        self.labels = set([0])
 
         self.folds = {}
 
@@ -335,6 +335,7 @@ class MiviaRoad():
                 num_classes = len(self.labels),
                 is_multilabel = False,
                 verbose = self.verbose,
+                model_frame_length_ms = model_frame_length_ms,
             )
 
             seq_clf_model.train(

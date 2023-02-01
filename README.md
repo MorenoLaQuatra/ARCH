@@ -122,6 +122,53 @@ unzip MIR-1K.zip
 rm MIR-1K.zip
 ```
 
+# Jamendo
+
+```bash
+wget https://zenodo.org/record/2585988/files/jamando.zip
+unzip jamando.zip
+rm jamando.zip
+```
+
+
+---
+
+# UrbanSound8K
+
+```bash
+wget https://zenodo.org/record/1203745/files/UrbanSound8K.tar.gz
+tar -xvzf UrbanSound8K.tar.gz
+rm UrbanSound8K.tar.gz
+```
+
+# Lyra Dataset (TODO)
+
+```bash
+git clone https://github.com/pxaris/lyra-dataset.git
+wget script
+```
+
+# AudioMNIST
+
+```bash
+git clone https://github.com/soerenab/AudioMNIST.git
+```
+
+# MagnaTagATune
+
+```bash
+mkdir magnatagatune
+wget https://mirg.city.ac.uk/datasets/magnatagatune/clip_info_final.csv
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.001
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.002
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.003
+wget https://mirg.city.ac.uk/datasets/magnatagatune/annotations_final.csv
+cat mp3.zip.* > mp3.zip
+unzip mp3.zip
+rm mp3.zip
+rm mp3.zip.*
+```
+
 
 ## Usage
 
