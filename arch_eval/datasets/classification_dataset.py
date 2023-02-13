@@ -15,7 +15,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
         self,
         audio_paths: List[str] = None,
         audios: List[Union[np.ndarray, torch.Tensor]] = None,
-        labels: List[int] = None,
+        labels: Union[List[int], List[List[int]]] = None,
         model: Model = None,
         sampling_rate: int = 16000,
         precompute_embeddings: bool = False,
@@ -106,7 +106,10 @@ class ClassificationDataset(torch.utils.data.Dataset):
         if len(indexes_to_remove) > 0:
             for index in sorted(indexes_to_remove, reverse=True):
                 del self.audio_paths[index]
-                del self.labels[index]
+                try:
+                    del self.labels[index]
+                except TypeError: # if the labels are tensors
+                    self.labels = torch.cat((self.labels[:index], self.labels[index+1:]))
 
         self.embeddings = torch.stack(self.embeddings)
 
@@ -140,5 +143,8 @@ class ClassificationDataset(torch.utils.data.Dataset):
         embeddings = self.model.get_embeddings(audio)
         # remove required_grad
         embeddings = embeddings.detach()
+
+        print("Type of embeddings: ", type(embeddings))
+        print("Type of label: ", type(label))
 
         return embeddings, label

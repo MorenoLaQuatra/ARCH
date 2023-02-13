@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from arch_eval import Model, ClassificationModel
 from arch_eval import ClassificationDataset
@@ -10,67 +11,77 @@ from arch_eval import ClassificationDataset
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
-class FMASmall():
+class MedleyDB():
     '''
-    This class implements the functionality to load the FMA-small dataset.
-    It implements a train/test split of the dataset (random split with seed 42).
+    This class implements the functionality to load the Medley Solos DB dataset.
+    It implements the original train/validation/test split proposed by the authors.
     '''
 
     def __init__(
         self,
-        config_path: str,
-        audio_files_path: str,
+        path,
         verbose = False,
     ):
-        '''
-        :param config_path: path to the folder containing the config files (fma_metadata)
-        :param audio_files_path: path to the folder containing the audio files (fma_small)
-        :param verbose: if True, print some information about the dataset
-        '''
 
-        self.config_path = config_path
-        self.audio_files_path = audio_files_path
+        self.path = path
         self.verbose = verbose
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
     def _load_data(self):
         '''
-        Load the train and test splits of the dataset.
-        :return: a dictionary containing as keys the split names
-        and as values a dictionary with the following keys:
-        - audio_paths: list of audio paths
-        - labels: list of labels
-        - readable_labels: list of readable labels
+        Load the data and split it into train, validation and test sets.
+        :return: lists of audio paths and labels for train, validation and test sets
         '''
-        # load the tracks.csv file
-        tracks = pd.read_csv(os.path.join(self.config_path, 'tracks.csv'), index_col=0, header=[0, 1])
-        # get track ids
-        #track_ids = tracks.index.values
 
-        # labels : track -> genre_top - drop rows with NaN
-        tracks = tracks.dropna(subset=[('track', 'genre_top')])
-        labels = tracks[('track', 'genre_top')].values
-        # convert labels to integers
-        le = preprocessing.LabelEncoder()
-        labels = le.fit_transform(labels)
-        self.num_classes = len(np.unique(labels))
-        # audio paths: df -> track_id
-        audio_paths = tracks.index.values
-        # 6-digit format for track_id
-        audio_paths = [os.path.join(self.audio_files_path, str(track_id).zfill(6) + '.mp3') for track_id in audio_paths]
-        # remove audio files that do not exist - take care of the labels
-        audio_paths, labels = zip(*[(audio_path, label) for audio_path, label in zip(audio_paths, labels) if os.path.exists(audio_path)])
+        # load metadata Medley-solos-DB_metadata.csv
+        metadata = pd.read_csv(os.path.join(self.path, "Medley-solos-DB_metadata.csv"))
+
+        # subset train, validation and test sets are defined by the authors
+        train = metadata[metadata["subset"] == "training"]
+        validation = metadata[metadata["subset"] == "validation"]
+        test = metadata[metadata["subset"] == "test"]
+
+        # get the audio paths and the labels
+        train_ids = train["uuid4"].values
+        validation_ids = validation["uuid4"].values
+        test_ids = test["uuid4"].values
+
+        # labels are the instrument_id
+        train_labels = train["instrument_id"].values
+        validation_labels = validation["instrument_id"].values
+        test_labels = test["instrument_id"].values
+
+        # map to integers
+        train_labels = [int(label) for label in train_labels]
+        validation_labels = [int(label) for label in validation_labels]
+        test_labels = [int(label) for label in test_labels]
+
+        all_paths = glob.glob(os.path.join(self.path, "audio", "*.wav"))
+
+        # for each id look in the audio folder for the wav file containing the id string
+        train_audio_paths = []
+        for id in tqdm(train_ids, desc="Loading train set"):
+            # search in the all_paths list for the path containing the id string
+            train_audio_paths.append([path for path in all_paths if id in path][0])
+
+        validation_audio_paths = []
+        for id in tqdm(validation_ids, desc="Loading validation set"):
+            validation_audio_paths.append([path for path in all_paths if id in path][0])
+
+        test_audio_paths = []
+        for id in tqdm(test_ids, desc="Loading test set"):
+            test_audio_paths.append([path for path in all_paths if id in path][0])
+
 
         if self.verbose:
-            print ("Original metadata shape: ", tracks.shape)
-            print ("FMA-small parsed data: ", len(audio_paths))
+            print("Train set: ", len(train_audio_paths))
+            print("Validation set: ", len(validation_audio_paths))
+            print("Test set: ", len(test_audio_paths))
 
-        # split the dataset into train, validation and test - 80% train, 10% validation, 10% test
-        # use a random split with seed 42
-        train_audio_paths, test_audio_paths, train_labels, test_labels = train_test_split(audio_paths, labels, test_size=0.2, random_state=42)
-        test_audio_paths, val_audio_paths, test_labels, val_labels = train_test_split(test_audio_paths, test_labels, test_size=0.5, random_state=42)
+        self.num_classes = len(set(train_labels))
 
-        return train_audio_paths, train_labels, val_audio_paths, val_labels, test_audio_paths, test_labels
+        return train_audio_paths, train_labels, validation_audio_paths, validation_labels, test_audio_paths, test_labels
+
 
     def evaluate(
         self,
@@ -82,30 +93,28 @@ class FMASmall():
         max_num_epochs: int = 100,
     ):
         '''
-        Evaluate the model on the dataset running train/validation/test tests.
-        :param model: the self-supervised model to evaluate, it must be an instance of Model
-        :param mode: the mode to use for the evaluation, it can be either 'linear' or 'non-linear'
-        :param device: the device to use for the evaluation, it can be either 'cpu' or 'cuda'
+        Evaluate a model on the dataset.
+        :param model: the model to evaluate
+        :param mode: the mode to use for the evaluation (linear or nonlinear)
+        :param device: the device to use for the evaluation (cpu or cuda)
         :param batch_size: the batch size to use for the evaluation
         :param num_workers: the number of workers to use for the evaluation
         :param max_num_epochs: the maximum number of epochs to use for the evaluation
-        :return: a dictionary containing the results of the evaluation
+        :return: the evaluation results
         '''
 
         if mode == 'linear':
-            # linear evaluation
             layers = []
         elif mode == 'non-linear':
-            # non-linear evaluation
             layers = [model.get_embedding_layer()]
         else:
-            raise ValueError(f"Invalid mode: {mode}")
+            raise ValueError('Invalid mode: ' + mode)
 
         clf_model = ClassificationModel(
             layers = layers,
             input_embedding_size = model.get_classification_embedding_size(),
             activation = "relu",
-            dropout = 0.1,  
+            dropout = 0.1,
             num_classes = self.num_classes,
             verbose = self.verbose,
         )
@@ -172,13 +181,4 @@ class FMASmall():
             device = device,
         )
 
-        return {
-            'loss': metrics['loss'],
-            'accuracy': metrics['accuracy'],
-            'f1': metrics['f1'],
-        }
-
-
-
-
-
+        return metrics

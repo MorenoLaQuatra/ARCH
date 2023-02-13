@@ -5,13 +5,13 @@ Summary: ARCH: Audio Representations benCHmark
 Home-page: https://github.com/MorenoLaQuatra/ARCH
 Author: Moreno La Quatra
 Author-email: moreno.laquatra@gmail.com
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.8
+Classifier: Operating System :: OS Independent
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 Classifier: Programming Language :: Python :: 3
-Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.9
 Description-Content-Type: text/markdown
 Provides-Extra: dev
 
@@ -28,6 +28,197 @@ The main features of ARCH are:
 ## Installation
 
 TODO
+
+## Datasets and tasks
+
+The benchmark includes the following tasks and, for each task, the corresponding datasets:
+
+**Audio Events**
+
+- Classification
+    - [ESC-50](https://github.com/karolpiczak/ESC-50): `esc50`
+- Sequence tagging
+    - [Mivia Audio Events Dataset](https://mivigdowna.unisa.it/datasets/audio-analysis/mivia-audio-events/): `mivia_audio_events`
+    - [Mivia road Audio Events Dataset](https://mivia.unisa.it/datasets/audio-analysis/mivia-road-audio-events-data-set/): `mivia_road_audio_events`
+
+
+**Music**
+
+- Classification
+    - [FMA-small](https://github.com/mdeff/fma): `fma_small`
+- Sequence tagging
+    - [MUSDB18](https://sigsep.github.io/datasets/musdb.html): `musdb18`
+
+
+**Speech**
+- Classification
+    - [RAVDESS](https://zenodo.org/record/1188976): `ravdess`
+
+- Sequence tagging
+    - [MUSAN](https://www.openslr.org/17/): `musan`
+
+
+## Datasets download
+
+### ESC-50
+```bash
+wget https://github.com/karoldvl/ESC-50/archive/master.zip
+unzip master.zip
+rm master.zip
+mv ESC-50-master esc50
+```
+
+### FMA-small
+It needs to have 7z installed given a known error with unzip (`error: not enough memory for bomb detection`). If you don't have it, you can install it with:
+```bash
+sudo apt-get install p7zip-full
+```
+
+Then, download and unzip the dataset:
+```bash
+mkdir fma_small
+cd fma_small
+wget https://os.unil.cloud.switch.ch/fma/fma_small.zip
+wget https://os.unil.cloud.switch.ch/fma/fma_metadata.zip
+7z x fma_small.zip
+7z x fma_metadata.zip
+rm fma_small.zip
+rm fma_metadata.zip
+```
+
+### RAVDESS
+```bash
+wget https://zenodo.org/record/1188976/files/Audio_Speech_Actors_01-24.zip
+mkdir ravdess
+unzip Audio_Speech_Actors_01-24.zip -d ravdess
+rm Audio_Speech_Actors_01-24.zip
+
+
+mv Audio_Speech_Actors_01-24 ravdess
+```
+
+### MUSAN - NOT USED AT THE MOMENT
+
+```bash
+wget https://www.openslr.org/resources/17/musan.tar.gz
+tar -xvzf musan.tar.gz
+rm musan.tar.gz
+```
+
+### MUSDB18
+
+```bash
+wget https://zenodo.org/record/3338373/files/musdb18hq.zip
+unzip musdb18hq.zip
+rm musdb18hq.zip
+```
+
+### Mivia Audio Events Dataset
+
+To download the dataset, you need to register on the [Mivia](https://mivia.unisa.it/) website. Both for the audio events dataset and the road audio events dataset, you can download the dataset for free if used for research purposes.
+
+```bash
+# download the dataset
+unzip mivia_audio_events.zip
+rm mivia_audio_events.zip
+```
+
+# Mivia Road Audio Events Dataset
+
+Similarly to the audio events dataset, you need to register on the [Mivia](https://mivia.unisa.it/) website to download the dataset.
+
+```bash
+# download the dataset
+unzip MIVIA_ROAD_DB1.zip
+rm MIVIA_ROAD_DB1.zip
+```
+
+# MIR-1K
+
+```bash
+wget http://mirlab.org/dataset/public/MIR-1K.zip
+unzip MIR-1K.zip
+rm MIR-1K.zip
+```
+
+# Jamendo
+
+```bash
+wget https://zenodo.org/record/2585988/files/jamando.zip
+unzip jamando.zip
+rm jamando.zip
+```
+
+
+---
+
+# UrbanSound8K
+
+```bash
+wget https://zenodo.org/record/1203745/files/UrbanSound8K.tar.gz
+tar -xvzf UrbanSound8K.tar.gz
+rm UrbanSound8K.tar.gz
+```
+
+# Lyra Dataset (TODO)
+
+```bash
+git clone https://github.com/pxaris/lyra-dataset.git
+wget script
+```
+
+# AudioMNIST
+
+```bash
+git clone https://github.com/soerenab/AudioMNIST.git
+```
+
+# MagnaTagATune
+
+The split of the dataset is the same as the one used in [Musicnn](https://github.com/jordipons/musicnn-training/tree/master/data/index/mtt).
+
+```bash
+
+mkdir magnatagatune
+wget https://mirg.city.ac.uk/datasets/magnatagatune/clip_info_final.csv
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.001
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.002
+wget https://mirg.city.ac.uk/datasets/magnatagatune/mp3.zip.003
+wget https://mirg.city.ac.uk/datasets/magnatagatune/annotations_final.csv
+cat mp3.zip.* > mp3.zip
+unzip mp3.zip
+rm mp3.zip
+rm mp3.zip.*
+
+wget https://raw.githubusercontent.com/jordipons/musicnn-training/master/data/index/mtt/test_gt_mtt.tsv # download the test split
+wget https://raw.githubusercontent.com/jordipons/musicnn-training/master/data/index/mtt/train_gt_mtt.tsv # download the train split
+wget https://raw.githubusercontent.com/jordipons/musicnn-training/master/data/index/mtt/val_gt_mtt.tsv # download the validation split
+
+```
+
+# IRMAS
+
+```bash
+mkdir irmas
+cd irmas
+
+wget https://zenodo.org/record/1290750/files/IRMAS-TrainingData.zip
+wget https://zenodo.org/record/1290750/files/IRMAS-TestingData-Part1.zip
+wget https://zenodo.org/record/1290750/files/IRMAS-TestingData-Part2.zip
+wget https://zenodo.org/record/1290750/files/IRMAS-TestingData-Part3.zip
+
+unzip IRMAS-TrainingData.zip
+unzip IRMAS-TestingData-Part1.zip
+unzip IRMAS-TestingData-Part2.zip
+unzip IRMAS-TestingData-Part3.zip
+
+rm IRMAS-TrainingData.zip
+rm IRMAS-TestingData-Part1.zip
+rm IRMAS-TestingData-Part2.zip
+rm IRMAS-TestingData-Part3.zip
+```
+
+
 
 ## Usage
 

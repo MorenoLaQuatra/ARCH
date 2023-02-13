@@ -8,49 +8,89 @@ from arch_eval import Model, ClassificationModel
 from arch_eval import ClassificationDataset
 
 from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
 
-class AudioMNIST():
+
+class SLURP():
     '''
-    This class implements the functionality to load the AudioMNIST dataset
-    It implements a train/test split of the dataset (random split with seed 42).
+    This class implements the functionality to load the SLURP dataset
+    and the recipe for its evaluation.
+    It implements the original train/devel/test split of the dataset.
     '''
 
     def __init__(
         self,
-        path,
-        verbose = False,
+        path: str,
+        verbose: bool = False,
     ):
 
         self.path = path
         self.verbose = verbose
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
+
     def _load_data(self):
         '''
-        Load the data and split it into train, validation and test sets.
-        :return: a list of lists containing the audio paths and the labels
+        Load the data of the dataset and provide the train, validation and test splits.
+        :return: a list of lists containing the audio paths and the labels.
         '''
 
-        # find all wav files in the path including subfolders
-        audio_paths = glob.glob(os.path.join(self.path, '**/*.wav'), recursive=True)
+        # train.jsonl, devel.jsonl, test.jsonl contain the paths to the audio files and the labels
+        train_df = pd.read_json(os.path.join(self.path, 'train.jsonl'), lines=True)
+        validation_df = pd.read_json(os.path.join(self.path, 'devel.jsonl'), lines=True)
+        test_df = pd.read_json(os.path.join(self.path, 'test.jsonl'), lines=True)
 
-        # get the labels from the file names (e.g. 03-01-01-01-01-01-01.wav) the 3rd element is the emotion
-        labels = [int(os.path.basename(path).split('-')[2]) for path in audio_paths]
+        train_paths = []
+        train_labels = []
+        for index, row in train_df.iterrows():
+            # get the list of recordings
+            recordings = row['recordings']
+            for recording in recordings:
+                # get the path to the audio file
+                train_paths.append(self.path + "/slurp_real/" + recording['file'])
+                train_labels.append(row["intent"])
+
+        validation_paths = []
+        validation_labels = []
+        for index, row in validation_df.iterrows():
+            # get the list of recordings
+            recordings = row['recordings']
+            for recording in recordings:
+                # get the path to the audio file
+                validation_paths.append(self.path + "/slurp_real/" + recording['file'])
+                validation_labels.append(row["intent"])
+
+        test_paths = []
+        test_labels = []
+        for index, row in test_df.iterrows():
+            # get the list of recordings
+            recordings = row['recordings']
+            for recording in recordings:
+                # get the path to the audio file
+                test_paths.append(self.path + "/slurp_real/" + recording['file'])
+                test_labels.append(row["intent"])
+
+        # get unique list of labels
+        self.all_labels = list(set(train_labels + validation_labels + test_labels))
+
+        # map labels to integers
+        self.label2int = {label: i for i, label in enumerate(self.all_labels)}
+        self.int2label = {i: label for i, label in enumerate(self.all_labels)}
 
         # convert labels to integers
-        labels = [int(label) - 1 for label in labels]
-        self.num_classes = len(np.unique(labels))
+        train_labels = [self.label2int[label] for label in train_labels]
+        validation_labels = [self.label2int[label] for label in validation_labels]
+        test_labels = [self.label2int[label] for label in test_labels]
+
+        self.num_classes = len(self.all_labels)
 
         if self.verbose:
-            print("Number of classes: ", self.num_classes)
-            print("Number of samples: ", len(audio_paths))
-
-        # split the data into train, validation and test sets
-        train_paths, test_paths, train_labels, test_labels = train_test_split(audio_paths, labels, test_size=0.2, random_state=42)
-        train_paths, validation_paths, train_labels, validation_labels = train_test_split(train_paths, train_labels, test_size=0.2, random_state=42)
+            print(f"Number of classes: {self.num_classes}")
+            print(f"Number of training samples: {len(train_paths)}")
+            print(f"Number of validation samples: {len(validation_paths)}")
+            print(f"Number of test samples: {len(test_paths)}")
 
         return train_paths, train_labels, validation_paths, validation_labels, test_paths, test_labels
+
 
     def evaluate(
         self,
@@ -150,8 +190,4 @@ class AudioMNIST():
             device = device,
         )
 
-        return {
-            'loss': metrics['loss'],
-            'accuracy': metrics['accuracy'],
-            'f1': metrics['f1'],
-        }
+        return metrics

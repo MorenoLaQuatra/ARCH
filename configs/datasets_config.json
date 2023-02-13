@@ -1,0 +1,81 @@
+{
+    "esc50": {
+        "path": "/home/mlaquatra/audio_datasets/esc50/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    },
+    "us8k": {
+        "path": "/home/mlaquatra/audio_datasets/UrbanSound8K/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    },
+    "fsd50k": {
+        "path": "/home/mlaquatra/audio_datasets/fsd50k/",
+        "max_length_seconds": 10,
+        "is_multilabel": true
+    },
+    "vivae": {
+        "path": "/home/mlaquatra/audio_datasets/VIVAE/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    },
+
+
+
+
+
+    "fma_small": {
+        "path": "/home/mlaquatra/audio_datasets/fma_small/",
+        "max_length_seconds": 30,
+        "is_multilabel": false
+    },
+
+    "magna_tag_a_tune": {
+        "path": "/home/mlaquatra/audio_datasets/magnatagatune/",
+        "max_length_seconds": 30,
+        "is_multilabel": true
+    },
+
+    "irmas": {
+        "path": "/home/mlaquatra/audio_datasets/irmas/",
+        "max_length_seconds": 5,
+        "is_multilabel": true
+    },
+
+    "medleydb": {
+        "path": "/home/mlaquatra/audio_datasets/medleydb/",
+        "max_length_seconds": 3,
+        "is_multilabel": false
+    },
+
+
+
+
+
+
+
+    "ravdess": {
+        "path": "/home/mlaquatra/audio_datasets/ravdess/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    },
+
+    "audio_mnist": {
+        "path": "/home/mlaquatra/audio_datasets/AudioMNIST/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    },
+
+    "slurp": {
+        "path": "/home/mlaquatra/audio_datasets/slurp/",
+        "max_length_seconds": 10,
+        "is_multilabel": false
+    }, 
+    "emovo": {
+        "path": "/home/mlaquatra/audio_datasets/emovo/",
+        "max_length_seconds": 5,
+        "is_multilabel": false
+    }
+
+
+}

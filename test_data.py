@@ -3,6 +3,8 @@ from arch_eval import FMASmall
 from arch_eval import RAVDESS
 from arch_eval import US8K
 from arch_eval import AudioMNIST
+from arch_eval import MagnaTagATune
+from arch_eval import IRMAS
 
 
 from arch_eval import MiviaRoad
@@ -40,11 +42,20 @@ evaluator = US8K(
     path="/data1/mlaquatra/datasets/audio_datasets/UrbanSound8K/",
     verbose=True
 )
-'''
 
 evaluator = AudioMNIST(
     path="/data1/mlaquatra/datasets/audio_datasets/AudioMNIST/",
     verbose=True
 )
 
+evaluator = MagnaTagATune(
+    path="/data1/mlaquatra/datasets/audio_datasets/magnatagatune/",
+    verbose=True
+)
 
+'''
+
+evaluator = IRMAS(
+    path="/data1/mlaquatra/datasets/audio_datasets/irmas/",
+    verbose=True
+)

@@ -1,0 +1,6 @@
+joblib
+yt-dlp
+torch
+torchaudio
+transformers
+gdown

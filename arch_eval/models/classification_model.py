@@ -2,7 +2,10 @@ import torch
 import numpy as np
 from typing import List, Union, Tuple
 from tqdm import tqdm
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, average_precision_score
+
+import warnings 
+warnings.filterwarnings("ignore")
 
 class ClassificationModel:
     """
@@ -17,6 +20,7 @@ class ClassificationModel:
         dropout: float = 0.1,
         num_classes: int = 2,
         verbose: bool = False,
+        is_multilabel: bool = False,
         **kwargs,
     ):
         """
@@ -33,6 +37,7 @@ class ClassificationModel:
         self.dropout = dropout
         self.num_classes = num_classes
         self.verbose = verbose
+        self.is_multilabel = is_multilabel
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -46,7 +51,7 @@ class ClassificationModel:
 
         # If no layers are specified, return a simple linear model
         if len(self.layers) == 0:
-            clf_model = torch.nn.Linear(self.input_embedding_size, self.num_classes)
+            model = [torch.nn.Linear(self.input_embedding_size, self.num_classes)]
         else:
             # Build the model
             model = []
@@ -58,7 +63,11 @@ class ClassificationModel:
                 model.append(torch.nn.Dropout(self.dropout))
                 model.append(torch.nn.ReLU())
             model.append(torch.nn.Linear(self.layers[-1], self.num_classes))
-            clf_model = torch.nn.Sequential(*model)
+
+        if self.is_multilabel:
+            model.append(torch.nn.Sigmoid())
+
+        clf_model = torch.nn.Sequential(*model)
 
         return clf_model
 
@@ -66,6 +75,7 @@ class ClassificationModel:
         self,
         train_dataloader,
         optimizer,
+        scheduler,
         criterion,
         device,
         **kwargs,
@@ -86,10 +96,15 @@ class ClassificationModel:
             optimizer.zero_grad()
             outputs = self.model(inputs)
             
-            loss = criterion(outputs, labels)
+            if self.is_multilabel:
+                labels = labels.type(torch.float32)
+                loss = criterion(outputs, labels)
+            else:
+                loss = criterion(outputs, labels)
 
             loss.backward()
             optimizer.step()
+            scheduler.step()
             running_loss += loss.item()
         return running_loss / len(train_dataloader)
     
@@ -116,43 +131,47 @@ class ClassificationModel:
         best_val_acc = 0.0
         best_val_f1 = 0.0
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
-        self.criterion = torch.nn.CrossEntropyLoss()
+        global_steps = max_num_epochs * len(train_dataloader)
+        warmup_percentage = 0.1
+        # make linear warmup schedule and linear decay schedule
+        warmup_steps = int(global_steps * warmup_percentage)
+        lr_lambda = lambda step: min(
+            1.0, step / warmup_steps
+        ) if step <= warmup_steps else max(
+            0.0, 1.0 - (step - warmup_steps) / (global_steps - warmup_steps)
+        )
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+
+        if self.is_multilabel:
+            self.criterion = torch.nn.BCELoss()
+        else:
+            self.criterion = torch.nn.CrossEntropyLoss()
         self.model = self.model.to(device)
 
         for epoch in tqdm(range(max_num_epochs), desc="Epochs"):
             # train for one epoch
             train_loss = self.train_epoch(
-                train_dataloader, optimizer, self.criterion, device
+                train_dataloader, optimizer, scheduler, self.criterion, device
             )
             scheduler.step()
             # evaluate on validation set
             metrics = self.evaluate(val_dataloader, device)
-            
-            val_loss = metrics["loss"]
-            val_acc = metrics["accuracy"]
-            val_f1 = metrics["f1"]
 
             # save best model
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                best_val_acc = val_acc
-                best_val_f1 = val_f1
+            if metrics["loss"] < best_val_loss:
+                best_val_metrics = metrics
                 best_model = self.model.state_dict()
 
             # report metrics in tqdm
             if self.verbose:
-                tqdm.write(
-                    f"Epoch {epoch + 1}/{max_num_epochs} - Train loss: {train_loss:.4f} - Val loss: {val_loss:.4f} - Val acc: {val_acc:.4f} - Val f1: {val_f1:.4f}"
+                str_metrics = " ".join(
+                    [f"{k}: {v:.4f}" for k, v in metrics.items()]
                 )
+                tqdm.write(f"Epoch {epoch + 1} - train loss: {train_loss:.4f} - {str_metrics}")
+
 
         # load best model
         self.model.load_state_dict(best_model)
-        best_val_metrics = {
-            "loss": best_val_loss,
-            "acc": best_val_acc,
-            "f1": best_val_f1,
-        }
         return best_model, best_val_metrics
 
     def evaluate(
@@ -176,12 +195,37 @@ class ClassificationModel:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+                if self.is_multilabel:
+                    labels = labels.type(torch.float32)
+                    loss = self.criterion(outputs, labels)
+                else:
+                    loss = self.criterion(outputs, labels)
                 running_loss += loss.item()
                 y_true.extend(labels.cpu().numpy())
-                y_pred.extend(np.argmax(outputs.cpu().numpy(), axis=1))
-        return {
-            "loss": running_loss / len(dataloader),
-            "accuracy": accuracy_score(y_true, y_pred),
-            "f1": f1_score(y_true, y_pred, average="macro"),
-        }
+                if self.is_multilabel:
+                    y_pred.extend(outputs.cpu().numpy())
+                else:
+                    y_pred.extend(outputs.argmax(dim=1).cpu().numpy())
+
+        if self.is_multilabel:
+            y_true = np.array(y_true)
+            y_pred = np.array(y_pred)
+
+            map_macro = average_precision_score(y_true, y_pred, average="macro")
+            map_weighted = average_precision_score(y_true, y_pred, average="weighted")
+            return {
+                "loss": running_loss / len(dataloader),
+                "map_macro": map_macro,
+                "map_weighted": map_weighted,
+            }
+        else:
+            accuracy = accuracy_score(y_true, y_pred)
+            f1 = f1_score(y_true, y_pred, average="macro")
+            return {
+                "loss": running_loss / len(dataloader),
+                "accuracy": accuracy,
+                "f1": f1,
+            }
+
+
+        
