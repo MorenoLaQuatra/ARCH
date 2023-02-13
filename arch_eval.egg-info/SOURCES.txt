@@ -1,8 +1,0 @@
-README.md
-setup.py
-arch_eval/__init__.py
-arch_eval.egg-info/PKG-INFO
-arch_eval.egg-info/SOURCES.txt
-arch_eval.egg-info/dependency_links.txt
-arch_eval.egg-info/requires.txt
-arch_eval.egg-info/top_level.txt

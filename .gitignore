@@ -1,2 +1,9 @@
 configs/datasets_config.json
 other_datasets.md
+arch_eval.egg-info/*
+arch.egg-info/*
+evaluate_hf_models_old.py
+evaluate_hf_seq_models_old.py
+test_data.py
+test_old.py
+test.py
