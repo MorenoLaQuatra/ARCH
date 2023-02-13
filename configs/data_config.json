@@ -1,21 +1,21 @@
 {
     "esc50": {
-        "path": "/home/mlaquatra/audio_datasets/esc50/",
+        "path": "PATH_TO_AUDIO_DATASETS/esc50/",
         "max_length_seconds": 5,
         "is_multilabel": false
     },
     "us8k": {
-        "path": "/home/mlaquatra/audio_datasets/UrbanSound8K/",
+        "path": "PATH_TO_AUDIO_DATASETS/UrbanSound8K/",
         "max_length_seconds": 5,
         "is_multilabel": false
     },
     "fsd50k": {
-        "path": "/home/mlaquatra/audio_datasets/fsd50k/",
+        "path": "PATH_TO_AUDIO_DATASETS/fsd50k/",
         "max_length_seconds": 10,
         "is_multilabel": true
     },
     "vivae": {
-        "path": "/home/mlaquatra/audio_datasets/VIVAE/",
+        "path": "PATH_TO_AUDIO_DATASETS/VIVAE/",
         "max_length_seconds": 5,
         "is_multilabel": false
     },
@@ -25,25 +25,25 @@
 
 
     "fma_small": {
-        "path": "/home/mlaquatra/audio_datasets/fma_small/",
+        "path": "PATH_TO_AUDIO_DATASETS/fma_small/",
         "max_length_seconds": 30,
         "is_multilabel": false
     },
 
     "magna_tag_a_tune": {
-        "path": "/home/mlaquatra/audio_datasets/magnatagatune/",
+        "path": "PATH_TO_AUDIO_DATASETS/magnatagatune/",
         "max_length_seconds": 30,
         "is_multilabel": true
     },
 
     "irmas": {
-        "path": "/home/mlaquatra/audio_datasets/irmas/",
+        "path": "PATH_TO_AUDIO_DATASETS/irmas/",
         "max_length_seconds": 5,
         "is_multilabel": true
     },
 
     "medleydb": {
-        "path": "/home/mlaquatra/audio_datasets/medleydb/",
+        "path": "PATH_TO_AUDIO_DATASETS/medleydb/",
         "max_length_seconds": 3,
         "is_multilabel": false
     },
@@ -55,24 +55,24 @@
 
 
     "ravdess": {
-        "path": "/home/mlaquatra/audio_datasets/ravdess/",
+        "path": "PATH_TO_AUDIO_DATASETS/ravdess/",
         "max_length_seconds": 5,
         "is_multilabel": false
     },
 
     "audio_mnist": {
-        "path": "/home/mlaquatra/audio_datasets/AudioMNIST/",
+        "path": "PATH_TO_AUDIO_DATASETS/AudioMNIST/",
         "max_length_seconds": 5,
         "is_multilabel": false
     },
 
     "slurp": {
-        "path": "/home/mlaquatra/audio_datasets/slurp/",
+        "path": "PATH_TO_AUDIO_DATASETS/slurp/",
         "max_length_seconds": 10,
         "is_multilabel": false
     }, 
     "emovo": {
-        "path": "/home/mlaquatra/audio_datasets/emovo/",
+        "path": "PATH_TO_AUDIO_DATASETS/emovo/",
         "max_length_seconds": 5,
         "is_multilabel": false
     }
