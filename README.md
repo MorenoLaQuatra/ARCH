@@ -1,5 +1,9 @@
 # ARCH: Audio Representations benCHmark
 
+<p align="center">
+  <img src="resources/arch_logo.png" alt="logo" width="400">
+</p>
+
 
 This repository contains the code for the ARCH benchmark. It is intended to be used to evaluate audio representations on a wide range of datasets and tasks.
 The benchmark is intended to be **easy to use** and to **allow the comparison of different audio representations**.
@@ -60,6 +64,8 @@ The benchmark includes multiple datasets and, at the moment, only classification
 
 The instructions to download the datasets are available on the [data_download/README.md](data_download/README.md) file.
 
+Detailed information and results of the first version of the benchmark are available on this [space](https://huggingface.co/spaces/ALM/ARCH). The results include both the numbers reported in the paper and the specific versions of the models evaluated.
+
 
 ## Usage
 
@@ -71,20 +77,34 @@ TODO
 
 ## License
 
-TODO
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
 
 ## Authors
 
-TODO
+[Moreno La Quatra](mlaquatra.me)
+[Alkis Koudounas](https://koudounasalkis.github.io/)
+[Lorenzo Vaiani]()
 
 ## Acknowledgments
 
-TODO
+This work could not have been possible without the support of the authors of the datasets and the models used in the benchmark. We would like to thank them for their work and for making their datasets and models publicly available.
 
 ## References
 
-TODO
+The table above contains the link and references of the **datasets** used in the benchmark, if you use them in your work, please cite them accordingly. 
 
-## Cite
+The specific **models** evaluated for each version of the benchmark are reported in the [results](https://huggingface.co/spaces/ALM/ARCH) page, if you use them in your work, please cite them accordingly.
 
-TODO
+If you use the benchmark in your work, please cite the following paper:
+
+**Version 1**:
+```bibtex
+@article{...COMING SOON...,
+  title={ARCH: AUDIO REPRESENTATION BENCHMARK FOR CLASSIFICATION OF MUSIC,
+SPEECH, AND SOUND EVENTS},
+  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Cagliero, Luca},
+  journal={},
+  year={2023}
+}
+```

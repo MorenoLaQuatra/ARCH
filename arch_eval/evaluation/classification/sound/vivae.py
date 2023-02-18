@@ -60,13 +60,12 @@ class VIVAE():
         
         self.num_classes = len(self.emotion_map)
         if self.verbose:
+            # print the total number of audio files
+            print("Total number of audio files: ", len(audio_paths))
+            # print the number of labels
             print("Number of classes: ", self.num_classes)
-            for speaker in dataset.keys():
-                print("Speaker: ", speaker)
-                print("Number of samples: ", len(dataset[speaker]["labels"]))
-                print("Number of classes: ", len(np.unique(dataset[speaker]["labels"])))
-                print("Classes: ", np.unique(dataset[speaker]["labels"]))
-                print("")
+        
+
 
         return dataset
 

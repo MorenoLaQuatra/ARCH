@@ -67,7 +67,11 @@ class US8K():
                 data[fold]['readable_labels'].append(row['class'])
 
         if self.verbose:
-            print('Loaded US8K dataset')
+            print (f"Loaded {len(data.keys())} folds")
+            # total number of samples
+            print (f"Total number of samples: {sum([len(data[fold]['audio_paths']) for fold in data.keys()])}")
+            # number of classes
+            print (f"Number of classes: {self.num_classes}")
 
         return data
 

@@ -63,6 +63,9 @@ class FMASmall():
         if self.verbose:
             print ("Original metadata shape: ", tracks.shape)
             print ("FMA-small parsed data: ", len(audio_paths))
+            # print some statistics - total number of audio files, number of classes
+            print ("Total number of audio files: ", len(audio_paths))
+            print ("Number of classes: ", self.num_classes)
 
         # split the dataset into train, validation and test - 80% train, 10% validation, 10% test
         # use a random split with seed 42

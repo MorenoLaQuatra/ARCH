@@ -64,14 +64,12 @@ class EMOVO():
                 data[speaker]['labels'].append(labels_mapping[label])
                 data[speaker]['readable_labels'].append(label)
 
-        if self.verbose:
-            # print some statistics
-            for speaker in speakers:
-                print("Speaker: ", speaker)
-                print("Number of samples: ", len(data[speaker]['audio_paths']))
-                print("Number of classes: ", len(np.unique(data[speaker]['labels'])))
-        
         self.num_classes = len(labels_mapping)
+
+        if self.verbose:
+            print(f"Number of folds: {len(data.keys())}")
+            print(f"Total number of audio files: {sum([len(data[fold]['audio_paths']) for fold in data.keys()])}")
+            print(f"Number of classes: {self.num_classes}")
 
         return data
 

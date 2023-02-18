@@ -78,10 +78,9 @@ class AudioMNIST():
         # set the number of classes
         self.num_classes = len(set(data[0]['labels']))
         if self.verbose:
-            print(f"Number of classes: {self.num_classes}")
             print(f"Number of folds: {len(data.keys())}")
             print(f"Total number of audio files: {len(audio_files)}")
-            print("Loaded AudioMNIST dataset.")
+            print(f"Number of classes: {self.num_classes}")
         return data
 
     def evaluate(

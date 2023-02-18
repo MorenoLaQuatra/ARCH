@@ -124,16 +124,16 @@ class FSD50K():
 
         if self.verbose:
             # print some statistics
-            print('Number of training samples: ', len(audio_paths_train))
-            print('Number of validation samples: ', len(audio_paths_val))
-            print('Number of test samples: ', len(audio_paths_test))
-            print("Number of classes: ", self.num_classes)
-
-            # print an example
-            print('Example:')
-            print('Audio path: ', audio_paths_train[0])
-            print('Labels: ', labels_train[0])
-
+            # total number of audio files
+            print('Total number of audio files: {}'.format(len(audio_paths_train) + len(audio_paths_val) + len(audio_paths_test)))
+            # number of audio files in the train set
+            print('Number of audio files in the train set: {}'.format(len(audio_paths_train)))
+            # number of audio files in the validation set
+            print('Number of audio files in the validation set: {}'.format(len(audio_paths_val)))
+            # number of audio files in the test set
+            print('Number of audio files in the test set: {}'.format(len(audio_paths_test)))
+            # number of classes
+            print('Number of classes: {}'.format(self.num_classes))
         
 
         return audio_paths_train, labels_train, audio_paths_val, labels_val, audio_paths_test, labels_test

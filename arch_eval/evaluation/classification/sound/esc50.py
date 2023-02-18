@@ -66,8 +66,14 @@ class ESC50():
                 data[fold]['audio_paths'].append(os.path.join(self.path, 'audio', row['filename']))
                 data[fold]['labels'].append(row['target'])
                 data[fold]['readable_labels'].append(row['category'])
+        
         if self.verbose:
-            print ("ESC-50 dataset loaded")
+            print (f"Loaded {len(data.keys())} folds")
+            # total number of samples
+            print (f"Total number of samples: {sum([len(data[fold]['audio_paths']) for fold in data.keys()])}")
+            # number of classes
+            print (f"Number of classes: {self.num_classes}")
+
         return data
 
     def evaluate(

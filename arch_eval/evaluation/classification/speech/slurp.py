@@ -88,6 +88,7 @@ class SLURP():
             print(f"Number of training samples: {len(train_paths)}")
             print(f"Number of validation samples: {len(validation_paths)}")
             print(f"Number of test samples: {len(test_paths)}")
+            print(f"Total number of samples: {len(train_paths) + len(validation_paths) + len(test_paths)}")
 
         return train_paths, train_labels, validation_paths, validation_labels, test_paths, test_labels
 

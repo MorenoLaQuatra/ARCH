@@ -197,13 +197,10 @@ class MagnaTagATune():
 
         self.id_to_label = {i: label for i, label in enumerate(label_names)}
 
-        # print one example of the data
         if self.verbose:
-            print(f"Example audio file: {train_paths[1]}")
-            print(f"Example label: {train_labels[1]}")
-            print(f"Type of example label: {type(train_labels[1])}")
-            # print all the tags for this example - find all the indices where the label is 1
-            print(f"Example tags: {[label_names[i] for i, label in enumerate(train_labels[1]) if label == 1]}")
+            # print some statistics - total number of audio files, number of classes
+            print (f"Total number of audio files: {len(train_paths) + len(validation_paths) + len(test_paths)}")
+            print (f"Number of classes: {self.num_classes}")
 
         return train_paths, train_labels, validation_paths, validation_labels, test_paths, test_labels
 

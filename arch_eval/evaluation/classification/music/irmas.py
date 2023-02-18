@@ -65,16 +65,6 @@ class IRMAS():
         # split the training data into train and validation sets
         train_paths, validation_paths, train_labels, validation_labels = train_test_split(train_paths, train_labels, test_size=0.2, random_state=42)
 
-        # print the labels for 10 samples
-        for i in range(10):
-            print (train_paths[i], train_labels[i])
-
-        if self.verbose:
-            print ("Train labels:", len(set([item for sublist in train_labels for item in sublist])))
-            print ("Validation labels:", len(set([item for sublist in validation_labels for item in sublist])))
-            print ("Test labels:", len(set([item for sublist in test_labels for item in sublist])))
-
-
         # convert the labels
         multi_label_binarizer = MultiLabelBinarizer()
         train_labels = multi_label_binarizer.fit_transform(train_labels)
@@ -82,6 +72,11 @@ class IRMAS():
         test_labels = multi_label_binarizer.transform(test_labels)
 
         self.num_classes = len(multi_label_binarizer.classes_)
+
+        if self.verbose:
+            # print some statistics - total number of audio files, number of classes
+            print ("Total number of audio files: ", len(train_paths) + len(validation_paths) + len(test_paths))
+            print ("Number of classes: ", self.num_classes)
 
         return train_paths, train_labels, validation_paths, validation_labels, test_paths, test_labels
 

@@ -73,12 +73,15 @@ class MedleyDB():
             test_audio_paths.append([path for path in all_paths if id in path][0])
 
 
+        self.num_classes = len(set(train_labels))
+
         if self.verbose:
             print("Train set: ", len(train_audio_paths))
             print("Validation set: ", len(validation_audio_paths))
             print("Test set: ", len(test_audio_paths))
-
-        self.num_classes = len(set(train_labels))
+            # print some statistics - total number of audio files, number of classes
+            print("Total number of audio files: ", len(train_audio_paths) + len(validation_audio_paths) + len(test_audio_paths))
+            print (f"Number of classes: {self.num_classes}")
 
         return train_audio_paths, train_labels, validation_audio_paths, validation_labels, test_audio_paths, test_labels
 
