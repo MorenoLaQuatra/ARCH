@@ -23,7 +23,7 @@ cd ARCH
 pip install -e .
 ```
 
-## Usage
+## Reproducing the results provided in the first release
 
 The benchmark can be used by importing the `arch` module. The file `evaluate_hf_models.py` contains an example of how to use the benchmark. It contains the following parameters that can be used to configure the benchmark:
 
