@@ -2,6 +2,8 @@
 
 <p align="center">
   <img src="resources/arch_logo.png" alt="logo" width="400">
+  <br>
+  <img src="https://shields.io/badge/View%20results%20on%20the%20🤗%20space-ARCH-green" alt="ARCH results"></a>
 </p>
 
 
