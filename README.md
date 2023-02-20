@@ -3,7 +3,7 @@
 <p align="center">
   <img src="resources/arch_logo.png" alt="logo" width="400">
   <br>
-  <a href="https://huggingface.co/spaces/ALM/ARCH"><img src="https://shields.io/badge/View%20results%20on%20the%20🤗%20space-ARCH-green" alt="ARCH results"></a>
+  <a href="https://huggingface.co/spaces/ALM/ARCH"><img src="https://shields.io/badge/View%20results%20on%20the%20🤗%20%20space-ARCH-yellow" alt="ARCH results"></a>
 </p>
 
 
