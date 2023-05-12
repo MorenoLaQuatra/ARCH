@@ -20,6 +20,7 @@ class FMASmall():
         self,
         path: str,
         verbose = False,
+        precompute_embeddings = False,
     ):
         '''
         :param config_path: path to the folder containing the config files (fma_metadata)
@@ -30,6 +31,7 @@ class FMASmall():
         self.config_path = path + "fma_metadata/"
         self.audio_files_path = path + "fma_small/"
         self.verbose = verbose
+        self.precompute_embeddings = precompute_embeddings
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
     def _load_data(self):
@@ -118,7 +120,7 @@ class FMASmall():
             labels = self.train_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         val_dataset = ClassificationDataset(
@@ -126,7 +128,7 @@ class FMASmall():
             labels = self.validation_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         test_dataset = ClassificationDataset(
@@ -134,7 +136,7 @@ class FMASmall():
             labels = self.test_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         # create train, validation and test dataloaders

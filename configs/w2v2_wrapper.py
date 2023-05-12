@@ -1,11 +1,15 @@
+from typing import Optional
+
 import torch
 import numpy as np
+import torch.nn as nn
+import torch.nn.functional as F
 
 from arch_eval import Model, ClassificationModel
 
 # implement a child class of Model
 class Wav2Vec2ModelWrapper(Model):
-    def __init__(self, model, feature_extractor, device, max_length):
+    def __init__(self, model, feature_extractor, device, max_length, attentive_pooling=False, train_backbone=False):
         super().__init__(model)
         self.model = model
         # the model must not be trained
@@ -13,6 +17,10 @@ class Wav2Vec2ModelWrapper(Model):
         self.feature_extractor = feature_extractor
         self.device = device
         self.max_length = max_length
+        self.attentive_pooling = attentive_pooling
+        if attentive_pooling:
+            self.attentive_pooling_head = AttentivePoolingHead(self.model.config.hidden_size)
+        self.train_backbone = train_backbone
 
     def get_embeddings(self, audio: np.ndarray, **kwargs):
         inputs = self.feature_extractor(
@@ -24,8 +32,16 @@ class Wav2Vec2ModelWrapper(Model):
             max_length=self.max_length,
         ).input_values
         inputs = inputs.to(self.device)
-        token_embeddings = self.model(inputs).last_hidden_state
-        return token_embeddings.mean(dim=1).squeeze()
+        if self.train_backbone:
+            token_embeddings = self.model(inputs).last_hidden_state
+        else:
+            with torch.no_grad():
+                token_embeddings = self.model(inputs).last_hidden_state
+
+        if self.attentive_pooling:
+            return self.attentive_pooling_head(token_embeddings).squeeze()
+        else:
+            return token_embeddings.mean(dim=1).squeeze()
 
 
     def get_token_embeddings(self, audio: np.ndarray, **kwargs):
@@ -43,7 +59,12 @@ class Wav2Vec2ModelWrapper(Model):
                 return_tensors="pt",
             ).input_values
             inputs = inputs.to(self.device)
-            token_embeddings = self.model(inputs).last_hidden_state
+            if self.train_backbone:
+                token_embeddings = self.model(inputs).last_hidden_state
+            else:
+                with torch.no_grad():
+                    token_embeddings = self.model(inputs).last_hidden_state
+
             chunks.append(token_embeddings.squeeze().cpu())
 
         return torch.cat(chunks, dim=0)
@@ -60,3 +81,57 @@ class Wav2Vec2ModelWrapper(Model):
     def get_embedding_layer(self):
         # return the size of the embedding layer
         return self.model.config.hidden_size
+
+
+
+
+class AttentivePoolingHead(nn.Module):
+    '''
+    This class implements the attentive pooling head.
+    The attentive pooling head contains:
+        - attentive pooling layer
+        - fully connected layer with relu activation and batch normalization
+
+    This layer is used to obtain a fixed size representation of the input sequence.
+    '''
+
+    def __init__(
+            self,
+            hidden_size: int = 768,
+            ):
+        '''
+        Args:
+            config: Model configuration.
+        '''
+
+        super().__init__()
+        self.hidden_size = hidden_size
+        # attentive pooling layer
+        self.attentive_pooling = nn.Linear(self.hidden_size, 1)
+        # fully connected layer with relu activation and batch normalization
+        self.fc = nn.Sequential(
+            nn.Linear(self.hidden_size, self.hidden_size),
+            nn.ReLU(),
+            nn.BatchNorm1d(self.hidden_size),
+        )
+
+
+    def forward(
+            self,
+            x: torch.Tensor,
+            ):
+        '''
+        Args:
+            x: Tensor of shape (batch_size, seq_len, hidden_size)
+        Returns:
+            logits: Tensor of shape (batch_size, num_classes)
+        '''
+        attentive_pooling = self.attentive_pooling(x)
+        attentive_pooling = attentive_pooling.squeeze(-1)
+        attentive_pooling = torch.softmax(attentive_pooling, dim=-1)
+        attentive_pooling = attentive_pooling.unsqueeze(1)
+        x = torch.bmm(attentive_pooling, x)
+        x = x.squeeze(1)
+        x = self.fc(x)
+
+        return x

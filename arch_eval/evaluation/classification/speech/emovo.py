@@ -20,10 +20,13 @@ class EMOVO():
         self,
         path,
         verbose = False,
+        precompute_embeddings: bool = False,
     ):
 
         self.path = path
         self.verbose = verbose
+        self.is_multilabel = False
+        self.precompute_embeddings = precompute_embeddings
         self.folds = self._load_data()
 
     def _load_data(self):
@@ -154,7 +157,7 @@ class EMOVO():
                 labels=labels_train,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             val_dataset = ClassificationDataset(
@@ -162,7 +165,7 @@ class EMOVO():
                 labels=labels_val,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             test_dataset = ClassificationDataset(
@@ -170,7 +173,7 @@ class EMOVO():
                 labels=labels_test,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             # create data loaders

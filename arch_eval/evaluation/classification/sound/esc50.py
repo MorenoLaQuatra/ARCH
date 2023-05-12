@@ -22,6 +22,7 @@ class ESC50():
         self,
         path: str,
         verbose: bool = False,
+        precompute_embeddings: bool = False,
     ):
         '''
         :param path: path to the dataset
@@ -29,6 +30,8 @@ class ESC50():
 
         self.path = path
         self.verbose = verbose
+        self.is_multilabel = False
+        self.precompute_embeddings = precompute_embeddings
         self.folds = self._load_folds()
 
     def _load_folds(self):
@@ -151,7 +154,7 @@ class ESC50():
                 labels=labels_train,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             val_dataset = ClassificationDataset(
@@ -159,7 +162,7 @@ class ESC50():
                 labels=labels_val,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             test_dataset = ClassificationDataset(
@@ -167,7 +170,7 @@ class ESC50():
                 labels=labels_test,
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
-                precompute_embeddings=True,
+                precompute_embeddings = self.precompute_embeddings,
             )
 
             # create data loaders

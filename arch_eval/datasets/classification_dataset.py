@@ -89,7 +89,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
                 # Generate embeddings
                 embeddings = self.model.get_embeddings(audio)
                 # remove required_grad
-                embeddings = embeddings.detach()
+                # embeddings = embeddings.detach()
                 self.embeddings.append(embeddings)
         else:
             for audio in tqdm(self.audios):
@@ -99,7 +99,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
                 # Generate embeddings
                 embeddings = self.model.get_embeddings(audio)
                 # remove required_grad
-                embeddings = embeddings.detach()
+                # embeddings = embeddings.detach()
                 self.embeddings.append(embeddings)
 
         # remove audio paths and labels that could not be loaded
@@ -142,9 +142,6 @@ class ClassificationDataset(torch.utils.data.Dataset):
         # Generate embeddings
         embeddings = self.model.get_embeddings(audio)
         # remove required_grad
-        embeddings = embeddings.detach()
-
-        print("Type of embeddings: ", type(embeddings))
-        print("Type of label: ", type(label))
+        # embeddings = embeddings.detach()
 
         return embeddings, label

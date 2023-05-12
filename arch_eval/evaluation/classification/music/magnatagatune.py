@@ -21,12 +21,14 @@ class MagnaTagATune():
         path,
         verbose = False,
         is_top50 = True,
+        precompute_embeddings: bool = False,
     ):
 
         self.path = path
         self.verbose = verbose
         self.is_multilabel = True
         self.is_top50 = is_top50
+        self.precompute_embeddings = precompute_embeddings
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
     def _load_data(self):
@@ -249,7 +251,7 @@ class MagnaTagATune():
             labels = self.train_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         val_dataset = ClassificationDataset(
@@ -257,7 +259,7 @@ class MagnaTagATune():
             labels = self.validation_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         test_dataset = ClassificationDataset(
@@ -265,7 +267,7 @@ class MagnaTagATune():
             labels = self.test_labels,
             model = model,
             sampling_rate = model.get_sampling_rate(),
-            precompute_embeddings = True,
+            precompute_embeddings = self.precompute_embeddings,
         )
 
         # create train, validation and test dataloaders
