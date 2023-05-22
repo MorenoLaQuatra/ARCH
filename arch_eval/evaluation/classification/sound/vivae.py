@@ -97,9 +97,11 @@ class VIVAE():
         if mode == 'linear':
             layers = []
         elif mode == 'non-linear':
-            layers = [model.get_embedding_layer()]
+            layers = [model.get_classification_embedding_size()]
+        elif mode == 'attention-pooling':
+            layers = []
         else:
-            raise ValueError('Invalid mode: ' + mode)
+            raise ValueError(f"Invalid mode {mode}")
 
         speakers = list(self.dataset.keys())
         results = []
@@ -135,6 +137,7 @@ class VIVAE():
                 dropout = 0.1,
                 num_classes = self.num_classes,
                 verbose = self.verbose,
+                mode = mode,
             )
 
             # create train, validation and test datasets
@@ -144,6 +147,7 @@ class VIVAE():
                 model = model,
                 sampling_rate = model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             val_dataset = ClassificationDataset(
@@ -152,6 +156,7 @@ class VIVAE():
                 model = model,
                 sampling_rate = model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             test_dataset = ClassificationDataset(
@@ -160,6 +165,7 @@ class VIVAE():
                 model = model,
                 sampling_rate = model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             # create train, validation and test dataloaders
@@ -209,6 +215,6 @@ class VIVAE():
         # compute the average metrics
         average_metrics = {}
         for metric in results[0].keys():
-            average_metrics[metric] = np.mean([result[metric] for result in results])
+            average_metrics[metric] = np.mean([result[metric] if result[metric] is not np.nan else 0.0 for result in results])
 
         return average_metrics

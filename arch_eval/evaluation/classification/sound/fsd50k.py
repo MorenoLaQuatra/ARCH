@@ -163,9 +163,11 @@ class FSD50K():
         if mode == 'linear':
             layers = []
         elif mode == 'non-linear':
-            layers = [model.get_embedding_layer()]
+            layers = [model.get_classification_embedding_size()]
+        elif mode == 'attention-pooling':
+            layers = []
         else:
-            raise ValueError('Invalid mode: ' + mode)
+            raise ValueError(f"Invalid mode {mode}")
 
         clf_model = ClassificationModel(
             layers = layers,
@@ -175,6 +177,7 @@ class FSD50K():
             num_classes = self.num_classes,
             verbose = self.verbose,
             is_multilabel = self.is_multilabel,
+            mode = mode,
         )
 
         # create train, validation and test datasets
@@ -184,6 +187,8 @@ class FSD50K():
             model = model,
             sampling_rate = model.get_sampling_rate(),
             precompute_embeddings = self.precompute_embeddings,
+            mode = mode,
+
         )
 
         val_dataset = ClassificationDataset(
@@ -192,6 +197,7 @@ class FSD50K():
             model = model,
             sampling_rate = model.get_sampling_rate(),
             precompute_embeddings = self.precompute_embeddings,
+            mode = mode,
         )
 
         test_dataset = ClassificationDataset(
@@ -200,6 +206,7 @@ class FSD50K():
             model = model,
             sampling_rate = model.get_sampling_rate(),
             precompute_embeddings = self.precompute_embeddings,
+            mode = mode,
         )
 
         # create train, validation and test dataloaders

@@ -111,6 +111,8 @@ class US8K():
                 layers = []
             elif mode == 'non-linear':
                 layers = [model.get_classification_embedding_size()]
+            elif mode == 'attention-pooling':
+                layers = []
             else:
                 raise ValueError(f"Invalid mode {mode}")
 
@@ -121,6 +123,7 @@ class US8K():
                 dropout=0.1,
                 num_classes=self.num_classes,
                 verbose=self.verbose,
+                mode=mode,
             )
 
             # Create train, validation and test datasets
@@ -146,6 +149,9 @@ class US8K():
                 random_state=42,
             )
 
+            if self.verbose:
+                print(f"Creating classification datasets")
+
             # Create the datasets
             train_dataset = ClassificationDataset(
                 audio_paths=audio_paths_train,
@@ -153,6 +159,7 @@ class US8K():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             val_dataset = ClassificationDataset(
@@ -161,6 +168,7 @@ class US8K():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             test_dataset = ClassificationDataset(
@@ -169,6 +177,7 @@ class US8K():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             # create data loaders

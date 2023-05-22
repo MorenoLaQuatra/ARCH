@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Union, Tuple
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, average_precision_score
-
+from arch_eval.models.attention_pooling_head import AttentionPoolingClassifier
 import warnings 
 warnings.filterwarnings("ignore")
 
@@ -21,6 +21,7 @@ class ClassificationModel:
         num_classes: int = 2,
         verbose: bool = False,
         is_multilabel: bool = False,
+        mode: str = "linear",
         **kwargs,
     ):
         """
@@ -38,6 +39,7 @@ class ClassificationModel:
         self.num_classes = num_classes
         self.verbose = verbose
         self.is_multilabel = is_multilabel
+        self.mode = mode
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -48,28 +50,33 @@ class ClassificationModel:
         Build the model according to the specified parameters.
         :return: a torch.nn.Module
         """
-
-        # If no layers are specified, return a simple linear model
-        if len(self.layers) == 0:
-            model = [torch.nn.Linear(self.input_embedding_size, self.num_classes)]
+        if self.mode == "attention-pooling":
+            model = AttentionPoolingClassifier(
+                embed_dim=self.input_embedding_size,
+                num_classes=self.num_classes,
+            )
+            return model
         else:
-            # Build the model
-            model = []
-            for i, layer_size in enumerate(self.layers):
-                if i == 0:
-                    model.append(torch.nn.Linear(self.input_embedding_size, layer_size))
-                else:
-                    model.append(torch.nn.Linear(self.layers[i - 1], layer_size))
-                model.append(torch.nn.Dropout(self.dropout))
-                model.append(torch.nn.ReLU())
-            model.append(torch.nn.Linear(self.layers[-1], self.num_classes))
+            if len(self.layers) == 0:
+                model = [torch.nn.Linear(self.input_embedding_size, self.num_classes)]
+            else:
+                # Build the model
+                model = []
+                for i, layer_size in enumerate(self.layers):
+                    if i == 0:
+                        model.append(torch.nn.Linear(self.input_embedding_size, layer_size))
+                    else:
+                        model.append(torch.nn.Linear(self.layers[i - 1], layer_size))
+                    model.append(torch.nn.Dropout(self.dropout))
+                    model.append(torch.nn.ReLU())
+                model.append(torch.nn.Linear(self.layers[-1], self.num_classes))
 
-        if self.is_multilabel:
-            model.append(torch.nn.Sigmoid())
+            if self.is_multilabel:
+                model.append(torch.nn.Sigmoid())
 
-        clf_model = torch.nn.Sequential(*model)
+            clf_model = torch.nn.Sequential(*model)
 
-        return clf_model
+            return clf_model
 
     def train_epoch(
         self,
@@ -98,9 +105,8 @@ class ClassificationModel:
             
             if self.is_multilabel:
                 labels = labels.type(torch.float32)
-                loss = criterion(outputs, labels)
-            else:
-                loss = criterion(outputs, labels)
+
+            loss = criterion(outputs, labels)
 
             loss.backward()
             optimizer.step()
@@ -130,7 +136,7 @@ class ClassificationModel:
         best_val_loss = np.inf
         best_val_acc = 0.0
         best_val_f1 = 0.0
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate, capturable=True)
         global_steps = max_num_epochs * len(train_dataloader)
         warmup_percentage = 0.1
         # make linear warmup schedule and linear decay schedule
@@ -158,7 +164,7 @@ class ClassificationModel:
             metrics = self.evaluate(val_dataloader, device)
 
             # save best model
-            if metrics["loss"] < best_val_loss:
+            if metrics["loss"] < best_val_loss or best_model is None:
                 best_val_metrics = metrics
                 best_model = self.model.state_dict()
 

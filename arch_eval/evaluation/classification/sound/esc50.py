@@ -113,6 +113,8 @@ class ESC50():
                 layers = []
             elif mode == 'non-linear':
                 layers = [model.get_classification_embedding_size()]
+            elif mode == 'attention-pooling':
+                layers = []
             else:
                 raise ValueError(f"Invalid mode {mode}")
             
@@ -123,6 +125,7 @@ class ESC50():
                 dropout=0.1,
                 num_classes=self.num_classes,
                 verbose=self.verbose,
+                mode=mode,
             )
 
             # Create train, validation and test datasets
@@ -155,6 +158,7 @@ class ESC50():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             val_dataset = ClassificationDataset(
@@ -163,6 +167,7 @@ class ESC50():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             test_dataset = ClassificationDataset(
@@ -171,6 +176,7 @@ class ESC50():
                 model=model,
                 sampling_rate=model.get_sampling_rate(),
                 precompute_embeddings = self.precompute_embeddings,
+                mode = mode,
             )
 
             # create data loaders

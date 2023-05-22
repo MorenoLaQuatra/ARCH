@@ -29,12 +29,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='facebook/wav2vec2-base')
 parser.add_argument('--device', type=str, default='cuda')
-parser.add_argument('--max_epochs', type=int, default=200)
+parser.add_argument('--max_epochs', type=int, default=50)
 parser.add_argument('--verbose', default=False, action = 'store_true')
 parser.add_argument('--tsv_logging_file', type=str, default='results/hf_models.tsv')
 parser.add_argument('--n_iters', type=int, default=1)
 parser.add_argument('--data_config_file', type=str, default='configs/datasets_config.json')
 parser.add_argument('--attentive_pooling', default=False, action = 'store_true')
+parser.add_argument('--precompute_embeddings', default=False, action = 'store_true')
 parser.add_argument('--enabled_datasets', type=str, nargs='+', default=["esc50", "us8k", "fsd50k", "vivae", 
                                                                         "fma_small", "magna_tag_a_tune", "irmas", "medleydb",
                                                                         "ravdess", "audio_mnist", "slurp", "emovo"])
@@ -69,42 +70,51 @@ enabled_datasets = args.enabled_datasets
 
 for dataset_name in enabled_datasets:
     
-    model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=datasets_info[dataset_name]["max_length_seconds"]*16_000, attentive_pooling=args.attentive_pooling)
+    model = Wav2Vec2ModelWrapper(audio_model, feature_extractor, args.device, max_length=datasets_info[dataset_name]["max_length_seconds"]*16_000)
     
     if dataset_name == "esc50":
-        evaluator = ESC50(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = ESC50(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "us8k":
-        evaluator = US8K(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = US8K(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "fma_small":
-        evaluator = FMASmall(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = FMASmall(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "magna_tag_a_tune":
-        evaluator = MagnaTagATune(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = MagnaTagATune(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "irmas":
-        evaluator = IRMAS(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = IRMAS(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "ravdess":
-        evaluator = RAVDESS(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = RAVDESS(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "audio_mnist":
-        evaluator = AudioMNIST(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = AudioMNIST(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "fsd50k":
-        evaluator = FSD50K(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = FSD50K(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "slurp":
-        evaluator = SLURP(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = SLURP(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "vivae":
-        evaluator = VIVAE(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = VIVAE(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "medleydb":
-        evaluator = MedleyDB(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = MedleyDB(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     elif dataset_name == "emovo":
-        evaluator = EMOVO(datasets_info[dataset_name]["path"], verbose=args.verbose)
+        evaluator = EMOVO(datasets_info[dataset_name]["path"], verbose=args.verbose, precompute_embeddings=args.precompute_embeddings)
     else:
         raise ValueError(f"Dataset {dataset_name} not supported")
+
+
+    mode = "attention-pooling" if args.attentive_pooling else "linear"
 
     res = []
     for i in range(args.n_iters):
         if args.verbose:
             print(f"Iteration {i+1}/{args.n_iters}")
-            print (f"----------------- {dataset_name} linear -----------------")
+            print (f"----------------- {dataset_name} {mode} -----------------")
 
-        res_dataset = evaluator.evaluate(model, mode="linear", device=args.device, batch_size=32, max_num_epochs=args.max_epochs)
+        res_dataset = evaluator.evaluate(
+            model, 
+            mode=mode, 
+            device=args.device, 
+            batch_size=32, 
+            max_num_epochs=args.max_epochs, 
+        )
 
         if args.verbose:
             print(f"Iteration {i+1}/{args.n_iters}")
@@ -120,7 +130,7 @@ for dataset_name in enabled_datasets:
         res_std[metric] = np.std([r[metric] for r in res])
 
     if args.verbose:
-        print(f"----------------- {dataset_name} linear -----------------")
+        print(f"----------------- {dataset_name} {mode} -----------------")
         for metric, value in res_mean.items():
             print(f"{metric}: {value} +/- {res_std[metric]}")
 
