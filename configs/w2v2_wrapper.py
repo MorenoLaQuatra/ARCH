@@ -49,6 +49,7 @@ class Wav2Vec2ModelWrapper(Model):
             padding="max_length",
             max_length=self.max_length,
         ).input_values
+        
         inputs = inputs.to(self.device)
         if self.train_backbone:
             token_embeddings = self.model(inputs).last_hidden_state
@@ -60,7 +61,8 @@ class Wav2Vec2ModelWrapper(Model):
         if self.train_backbone:
             token_embeddings = token_embeddings.cpu()
         else:
-            token_embeddings = token_embeddings.detach().cpu()
+            with torch.no_grad():
+                token_embeddings = token_embeddings.detach().cpu()
 
         return token_embeddings.squeeze()
 

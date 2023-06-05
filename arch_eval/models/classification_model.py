@@ -55,6 +55,8 @@ class ClassificationModel:
                 embed_dim=self.input_embedding_size,
                 num_classes=self.num_classes,
             )
+            if self.is_multilabel:
+                model = torch.nn.Sequential(model, torch.nn.Sigmoid())
             return model
         else:
             if len(self.layers) == 0:

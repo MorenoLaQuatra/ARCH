@@ -152,7 +152,6 @@ class ClassificationDataset(torch.utils.data.Dataset):
                 del self.audio_paths[index]
                 try:
                     del self.labels[index]
-                    # remove the embeddings as well
                     self.embeddings = torch.cat((self.embeddings[:index], self.embeddings[index+1:]))
                 except TypeError: # if the labels are tensors
                     self.labels = torch.cat((self.labels[:index], self.labels[index+1:]))

@@ -22,12 +22,14 @@ class FSD50K():
         path,
         verbose = False,
         precompute_embeddings: bool = False,
+        one_hot_encoding: bool = False,
     ):
 
         self.path = path
         self.verbose = verbose
         self.is_multilabel = True
         self.precompute_embeddings = precompute_embeddings
+        self.one_hot_encoding = one_hot_encoding
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
     def _load_data(self):
@@ -114,9 +116,6 @@ class FSD50K():
         test_labels = np.zeros((len(labels_test), self.num_classes))
         for i, labels in enumerate(labels_test):
             test_labels[i, labels] = 1
-
-        print(labels_train[0].shape)
-        print(labels_train[0])
 
         # convert to tensors
         labels_train = torch.tensor(train_labels, dtype=torch.float32)

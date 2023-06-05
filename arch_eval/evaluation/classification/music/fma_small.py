@@ -31,6 +31,7 @@ class FMASmall():
         self.config_path = path + "fma_metadata/"
         self.audio_files_path = path + "fma_small/"
         self.verbose = verbose
+        self.is_multilabel = False
         self.precompute_embeddings = precompute_embeddings
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
