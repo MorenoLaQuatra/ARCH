@@ -29,7 +29,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='facebook/wav2vec2-base')
 parser.add_argument('--device', type=str, default='cuda')
-parser.add_argument('--max_epochs', type=int, default=50)
+parser.add_argument('--max_epochs', type=int, default=200)
 parser.add_argument('--verbose', default=False, action = 'store_true')
 parser.add_argument('--tsv_logging_file', type=str, default='results/hf_models.tsv')
 parser.add_argument('--n_iters', type=int, default=1)
@@ -140,13 +140,19 @@ for dataset_name in enabled_datasets:
     else:
         tsv_lines.append(f"{args.model}\t{model_parameters}\tTrue\t{dataset_name}\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}\n")
 
+    with open(args.tsv_logging_file, "a") as f:
+        if datasets_info[dataset_name]["is_multilabel"]:
+            f.write(f"{args.model}\t{model_parameters}\tTrue\t{dataset_name}\t{res_mean['map_macro']}\t{res_std['map_macro']}\t{res_mean['map_weighted']}\t{res_std['map_weighted']}\n")
+        else:
+            f.write(f"{args.model}\t{model_parameters}\tTrue\t{dataset_name}\t{res_mean['accuracy']}\t{res_std['accuracy']}\t{res_mean['f1']}\t{res_std['f1']}\n")
+
 
 if args.verbose:
     print("\n\nAll results:")
     for line in tsv_lines:
         print(line)
 
-# append tsv lines in file
-with open(args.tsv_logging_file, "a") as f:
-    for line in tsv_lines:
-        f.write(line)
+# # append tsv lines in file
+# with open(args.tsv_logging_file, "a") as f:
+#     for line in tsv_lines:
+#         f.write(line)

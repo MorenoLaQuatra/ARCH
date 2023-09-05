@@ -8,3 +8,11 @@ test_data.py
 test_old.py
 test.py
 build/*
+configs/ssast/*
+results/*
+support_files/*
+configs/ssast/
+configs/ssast_wrapper.py
+arch_eval/evaluation/sequence/*
+SSAST.md
+evaluate_models.sh

@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import numpy as np
 import torch
+import torchaudio
 
 from arch_eval import Model, ClassificationModel
 from arch_eval import ClassificationDataset
@@ -85,6 +86,30 @@ class AudioMNIST():
             print(f"Total number of audio files: {len(audio_files)}")
             print(f"Number of classes: {self.num_classes}")
         return data
+
+
+    def get_average_duration(self):
+        '''
+        Compute the average duration of the audio files in the dataset.
+        :return: the average duration of the audio files in the dataset
+        '''
+        durations = []
+        audio_paths = []
+        for fold_id in self.folds.keys():
+            audio_paths.extend(self.folds[fold_id]['audio_paths'])
+
+        audio_paths = list(set(audio_paths))
+
+        for audio_path in audio_paths:
+            try:
+                audio, sr = torchaudio.load(audio_path)
+            except Exception as e:
+                print (e)
+                print (audio_path)
+                continue
+            durations.append(audio.shape[1] / sr)
+        return torch.tensor(durations).mean().item()
+
 
     def evaluate(
         self,

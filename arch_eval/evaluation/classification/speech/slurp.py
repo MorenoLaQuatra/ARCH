@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import numpy as np
 import torch
+import torchaudio
 
 from arch_eval import Model, ClassificationModel
 from arch_eval import ClassificationDataset
@@ -94,7 +95,24 @@ class SLURP():
             print(f"Total number of samples: {len(train_paths) + len(validation_paths) + len(test_paths)}")
 
         return train_paths, train_labels, validation_paths, validation_labels, test_paths, test_labels
-
+    
+    def get_average_duration(self):
+        '''
+        Compute the average duration of the audio files in the dataset.
+        :return: the average duration of the audio files in the dataset
+        '''
+        durations = []
+        audio_paths = self.train_paths + self.validation_paths + self.test_paths
+        audio_paths = list(set(audio_paths))
+        for audio_path in audio_paths:
+            try:
+                audio, sr = torchaudio.load(audio_path)
+            except Exception as e:
+                print (e)
+                print (audio_path)
+                continue
+            durations.append(audio.shape[1] / sr)
+        return torch.tensor(durations).mean().item()
 
     def evaluate(
         self,

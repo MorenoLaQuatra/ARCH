@@ -31,6 +31,9 @@ setup(
         "librosa",
         "soundfile",
         "pydub",
+        "xmltodict",
+        "pyannote.core",
+        "pyannote.metrics",
     ],
     extras_require = {
         "dev" : [
