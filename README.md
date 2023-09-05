@@ -164,7 +164,7 @@ If you use the benchmark in your work, please cite the following paper:
 ```bibtex
 @article{...COMING SOON...,
   title={ARCH: Audio Representation Benchmark for Classification of Music, Speech, and Sound Events},
-  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Garza, Paolo and Cagliero, Luca},
+  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Garza, Paolo and Cagliero, Luca, and Siniscalchi, Sabato Marco},
   journal={},
   year={2023}
 }
