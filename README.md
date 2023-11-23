@@ -15,6 +15,14 @@ The main features of ARCH are:
 - **Extensibility**: the benchmark is designed to be easy to extend. It is possible to add new datasets and tasks as well as new models to evaluate its audio representations.
 - **Standardization**: the benchmark wants to standardize the evaluation of audio representations. The pletora of ARL models and datasets makes it difficult to compare them. The benchmark aims at providing a standard way to evaluate audio representations.
 
+The main components and their interactions are illustrated in the following figure:
+
+<p align="center">
+  <br>
+  <img src="resources/ARCH_architecture.png" alt="logo" width="100%">
+  <br>
+</p>
+
 ## Installation
 
 ARCH can be installed by just cloning the repository and installing it with pip:
