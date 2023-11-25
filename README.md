@@ -76,6 +76,28 @@ The instructions to download the datasets are available on the [data_download/RE
 
 Detailed information and results of the first version of the benchmark are available on this [space](https://huggingface.co/spaces/ALM/ARCH). The results include both the numbers reported in the paper and the specific versions of the models evaluated.
 
+# Models
+
+We have currently evaluated models that are summarized in the following table. We report the name of the model, the number of parameters, and the number of GFLOPs. The results are reported in the [dedicated 🤗 space]](https://huggingface.co/spaces/ALM/ARCH) page.
+
+| Model | # Params | GFLOPs |
+|-------|----------|--------|
+| [facebook/wav2vec2-base](https://huggingface.co/facebook/wav2vec2-base) | ~90M | ~70 |
+| [microsoft/wavlm-base](https://huggingface.co/microsoft/wavlm-base) | ~90M | ~70 |
+| [microsoft/wavlm-base-plus](https://huggingface.co/microsoft/wavlm-base-plus) | ~90M | ~70 |
+| [facebook/hubert-base-ls960](https://huggingface.co/facebook/hubert-base-ls960) | ~90M | ~70 |
+| [facebook/data2vec-audio-base](https://huggingface.co/facebook/data2vec-audio-base) | ~90M | ~70 |
+| [ALM/wav2vec2-base-audioset](https://huggingface.co/ALM/wav2vec2-base-audioset) **(new)** | ~90M | ~70 |
+| [ALM/hubert-base-audioset](https://huggingface.co/ALM/hubert-base-audioset) **(new)**| ~90M | ~70 |
+| [facebook/wav2vec2-large-robust](https://huggingface.co/facebook/wav2vec2-large-robust) | ~300M | ~190 |
+| [facebook/wav2vec2-xls-r-300m](https://huggingface.co/facebook/wav2vec2-xls-r-300m) | ~300M | ~190 |
+| [microsoft/wavlm-large](https://huggingface.co/microsoft/wavlm-large) | ~300M | ~190 |
+| [facebook/hubert-large-ll60k](https://huggingface.co/facebook/hubert-large-ll60k) | ~300M | ~190 |
+| [facebook/data2vec-audio-large](https://huggingface.co/facebook/data2vec-audio-large) | ~300M | ~190 |
+| [ALM/wav2vec2-large-audioset](https://huggingface.co/ALM/wav2vec2-large-audioset) **(new)** | ~300M | ~190 |
+| [ALM/hubert-large-audioset](https://huggingface.co/ALM/hubert-large-audioset) **(new)** | ~300M | ~190 |
+| [facebook/wav2vec2-xls-r-1b](https://huggingface.co/facebook/wav2vec2-xls-r-1b) | ~1B | ~530 |
+| [facebook/hubert-xlarge-ll60k](https://huggingface.co/facebook/hubert-xlarge-ll60k) | ~1B | ~530 |
 
 # Usage
 
