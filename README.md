@@ -192,10 +192,10 @@ If you use the benchmark in your work, please cite the following paper:
 
 **Version 1**:
 ```bibtex
-@article{...COMING SOON...,
-  title={ARCH: Audio Representation Benchmark for Classification of Music, Speech, and Sound Events},
-  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Garza, Paolo and Cagliero, Luca, and Siniscalchi, Sabato Marco},
-  journal={},
-  year={2023}
+@INPROCEEDINGS{ARCH,
+  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Garza, Paolo and Cagliero, Luca and Siniscalchi, Sabato Marco},
+  booktitle={2024 IEEE International Conference on Acoustics, Speech, and Signal Processing Workshops (ICASSPW)}, 
+  title={Benchmarking Representations for Speech, Music, and Acoustic Events}, 
+  year={2024}
 }
 ```
