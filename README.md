@@ -193,9 +193,12 @@ If you use the benchmark in your work, please cite the following paper:
 **Version 1**:
 ```bibtex
 @INPROCEEDINGS{ARCH,
-  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Garza, Paolo and Cagliero, Luca and Siniscalchi, Sabato Marco},
+  author={La Quatra, Moreno and Koudounas, Alkis and Vaiani, Lorenzo and Baralis, Elena and Cagliero, Luca and Garza, Paolo and Siniscalchi, Sabato Marco},
   booktitle={2024 IEEE International Conference on Acoustics, Speech, and Signal Processing Workshops (ICASSPW)}, 
   title={Benchmarking Representations for Speech, Music, and Acoustic Events}, 
-  year={2024}
+  year={2024},
+  pages={505-509},
+  keywords={Representation learning; Systematics; Conferences; Benchmark testing; Signal processing; Acoustics; Data models; Audio Representation Learning; Benchmark; Pre-trained Models; Self-Supervised Learning},
+  doi={10.1109/ICASSPW62465.2024.10625960}
 }
 ```
