@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import torch
 import numpy as np
 from typing import List, Union, Tuple
@@ -99,6 +101,7 @@ class ClassificationModel:
         """
         self.model.train()
         running_loss = 0.0
+        processed_examples = 0
         for i, (inputs, labels) in enumerate(train_dataloader):
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -113,8 +116,12 @@ class ClassificationModel:
             loss.backward()
             optimizer.step()
             scheduler.step()
-            running_loss += loss.item()
-        return running_loss / len(train_dataloader)
+            batch_size = labels.shape[0]
+            running_loss += loss.item() * batch_size
+            processed_examples += batch_size
+        if processed_examples == 0:
+            raise ValueError("train_dataloader must contain at least one example")
+        return running_loss / processed_examples
     
     def train(
         self,
@@ -167,8 +174,9 @@ class ClassificationModel:
 
             # save best model
             if metrics["loss"] < best_val_loss or best_model is None:
-                best_val_metrics = metrics
-                best_model = self.model.state_dict()
+                best_val_loss = metrics["loss"]
+                best_val_metrics = dict(metrics)
+                best_model = deepcopy(self.model.state_dict())
 
             # report metrics in tqdm
             if self.verbose:
@@ -196,6 +204,7 @@ class ClassificationModel:
         """
         self.model.eval()
         running_loss = 0.0
+        processed_examples = 0
         y_true = []
         y_pred = []
         with torch.no_grad():
@@ -208,13 +217,19 @@ class ClassificationModel:
                     loss = self.criterion(outputs, labels)
                 else:
                     loss = self.criterion(outputs, labels)
-                running_loss += loss.item()
+                batch_size = labels.shape[0]
+                running_loss += loss.item() * batch_size
+                processed_examples += batch_size
                 y_true.extend(labels.cpu().numpy())
                 if self.is_multilabel:
                     y_pred.extend(outputs.cpu().numpy())
                 else:
                     y_pred.extend(outputs.argmax(dim=1).cpu().numpy())
 
+        if processed_examples == 0:
+            raise ValueError("dataloader must contain at least one example")
+
+        mean_loss = running_loss / processed_examples
         if self.is_multilabel:
             y_true = np.array(y_true)
             y_pred = np.array(y_pred)
@@ -222,7 +237,7 @@ class ClassificationModel:
             map_macro = average_precision_score(y_true, y_pred, average="macro")
             map_weighted = average_precision_score(y_true, y_pred, average="weighted")
             return {
-                "loss": running_loss / len(dataloader),
+                "loss": mean_loss,
                 "map_macro": map_macro,
                 "map_weighted": map_weighted,
             }
@@ -230,10 +245,7 @@ class ClassificationModel:
             accuracy = accuracy_score(y_true, y_pred)
             f1 = f1_score(y_true, y_pred, average="macro")
             return {
-                "loss": running_loss / len(dataloader),
+                "loss": mean_loss,
                 "accuracy": accuracy,
                 "f1": f1,
             }
-
-
-        
