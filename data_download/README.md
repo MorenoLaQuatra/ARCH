@@ -87,6 +87,10 @@ Keep the directory hierarchy created by the official archive. For example, track
 should remain at `fma_small/000/000002.mp3`. The loader also accepts an older flat
 layout such as `fma_small/000002.mp3` for backward compatibility.
 
+Some files in the official archive cannot be decoded by FFmpeg/TorchAudio. During
+embedding precomputation, ARCH skips those files while keeping paths, labels, and
+embeddings aligned.
+
 ### MagnaTagATune
 The split of the dataset is the same as the one used in [Musicnn](https://github.com/jordipons/musicnn-training/tree/master/data/index/mtt).
 

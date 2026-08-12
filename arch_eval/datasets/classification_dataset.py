@@ -64,21 +64,34 @@ class ClassificationDataset(torch.utils.data.Dataset):
         else:
             return len(self.audios)
 
-    def _get_embeddings_from_path(self, audio_path):
+    @staticmethod
+    def _select_indices(values, indices):
+        """Select aligned items while preserving common container types."""
+        if isinstance(values, torch.Tensor):
+            return values[indices]
+        if isinstance(values, np.ndarray):
+            return values[np.asarray(indices, dtype=np.int64)]
+        selected = [values[index] for index in indices]
+        return tuple(selected) if isinstance(values, tuple) else selected
+
+    def _load_audio_from_path(self, audio_path):
         '''
-        Get the embeddings from a path
+        Load and normalize one waveform from a path.
         '''
-        # Load audio and resample it if necessary
         audio, sr = torchaudio.load(audio_path)
         if sr != self.sampling_rate:
             audio = torchaudio.transforms.Resample(sr, self.sampling_rate)(audio)
-        # if audio is 1, length - remove first dimension
         if audio.shape[0] == 2:
             audio = torch.mean(audio, dim=0)
         if audio.shape[0] == 1:
             audio = audio[0]
+        return audio
 
-        # Generate embeddings
+    def _get_embeddings_from_path(self, audio_path):
+        '''
+        Get the embeddings from a path
+        '''
+        audio = self._load_audio_from_path(audio_path)
         if self.mode == "attention-pooling":
             embeddings = self.model.get_sequence_embeddings(audio)
         else:
@@ -99,62 +112,43 @@ class ClassificationDataset(torch.utils.data.Dataset):
             embeddings = self.model.get_embeddings(audio)
         return embeddings
 
-    def _get_embeddings_shape(self):
-        '''
-        Get the shape of the embeddings
-        '''
-        if self.audio_paths is not None:
-            audio_path = self.audio_paths[0]
-            embeddings = self._get_embeddings_from_path(audio_path)
-            shape = list(embeddings.shape)
-        else:
-            audio = self.audios[0]
-            embeddings = self._get_embeddings_from_audio(audio)
-            shape = list(embeddings.shape)
-        return shape
-
     def _precompute_embeddings(self):
         '''
         Precompute embeddings for all the audio files in the dataset.
         This is done to avoid recomputing the embeddings for each epoch.
         '''
-        indexes_to_remove = []
+        valid_indices = []
+        valid_embeddings = []
 
-        # get the shape of the embeddings
-        shape = self._get_embeddings_shape()
-
-        # create an empty tensor to store the embeddings - independent of the input shape
-        print(f"Shape of the embeddings: {shape}")
-        print(f"Allocating memory for {len(self)} embeddings...")
-        print(f"Total size: {len(self) * np.prod(shape) * 4 / 1024 / 1024 / 1024} GB")
-        self.embeddings = torch.zeros((len(self), *shape))
-
-        # compute the embeddings for all the audio files
         if self.audio_paths is not None:
-            for audio_path in tqdm(self.audio_paths):
+            for index, audio_path in enumerate(tqdm(self.audio_paths)):
                 try:
-                    embeddings = self._get_embeddings_from_path(audio_path)
-                except RuntimeError:
-                    print(f"Error loading {audio_path}")
-                    indexes_to_remove.append(self.audio_paths.index(audio_path))
+                    audio = self._load_audio_from_path(audio_path)
+                except (RuntimeError, OSError) as error:
+                    error_summary = str(error).splitlines()[0]
+                    print(f"Error loading {audio_path}: {error_summary}")
                     continue
-                self.embeddings[self.audio_paths.index(audio_path)] = embeddings
-        else:
-            index_embeddings = 0
-            for audio in tqdm(self.audios):
                 embeddings = self._get_embeddings_from_audio(audio)
-                self.embeddings[index_embeddings] = embeddings
-                index_embeddings += 1
+                valid_indices.append(index)
+                valid_embeddings.append(embeddings.detach().cpu().float())
+        else:
+            for index, audio in enumerate(tqdm(self.audios)):
+                embeddings = self._get_embeddings_from_audio(audio)
+                valid_indices.append(index)
+                valid_embeddings.append(embeddings.detach().cpu().float())
 
-        # remove audio paths and labels that could not be loaded
-        if len(indexes_to_remove) > 0:
-            for index in sorted(indexes_to_remove, reverse=True):
-                del self.audio_paths[index]
-                try:
-                    del self.labels[index]
-                    self.embeddings = torch.cat((self.embeddings[:index], self.embeddings[index+1:]))
-                except TypeError: # if the labels are tensors
-                    self.labels = torch.cat((self.labels[:index], self.labels[index+1:]))
+        if not valid_embeddings:
+            raise RuntimeError("Could not precompute any embeddings from the dataset")
+
+        if self.audio_paths is not None and len(valid_indices) != len(self.audio_paths):
+            original_audio_paths = self.audio_paths
+            self.audio_paths = [original_audio_paths[index] for index in valid_indices]
+            self.labels = self._select_indices(self.labels, valid_indices)
+            print(
+                f"Skipped {len(original_audio_paths) - len(valid_indices)} "
+                "undecodable audio files."
+            )
+        self.embeddings = torch.stack(valid_embeddings)
 
         print(f"Successfully loaded {len(self)} audio files.")
         print(f"Shape of the final embeddings: {self.embeddings.shape}")
