@@ -36,6 +36,22 @@ class FMASmall():
         self.precompute_embeddings = precompute_embeddings
         self.train_paths, self.train_labels, self.validation_paths, self.validation_labels, self.test_paths, self.test_labels = self._load_data()
 
+    @staticmethod
+    def _audio_path(audio_files_path, track_id):
+        """Resolve an official nested path, with legacy flat-layout fallback."""
+        track_filename = f"{int(track_id):06d}.mp3"
+        nested_path = os.path.join(
+            audio_files_path,
+            track_filename[:3],
+            track_filename,
+        )
+        if os.path.isfile(nested_path):
+            return nested_path
+        flat_path = os.path.join(audio_files_path, track_filename)
+        if os.path.isfile(flat_path):
+            return flat_path
+        return nested_path
+
     def _load_data(self):
         '''
         Load the train and test splits of the dataset.
@@ -50,19 +66,38 @@ class FMASmall():
         # get track ids
         #track_ids = tracks.index.values
 
+        # The shared metadata covers every FMA subset. Restrict it explicitly when
+        # that column is available, while retaining compatibility with older files.
+        if ('set', 'subset') in tracks.columns:
+            tracks = tracks[tracks[('set', 'subset')] == 'small']
+
         # labels : track -> genre_top - drop rows with NaN
         tracks = tracks.dropna(subset=[('track', 'genre_top')])
-        labels = tracks[('track', 'genre_top')].values
-        # convert labels to integers
+        readable_labels = tracks[('track', 'genre_top')].values
+        audio_paths = [
+            self._audio_path(self.audio_files_path, track_id)
+            for track_id in tracks.index.values
+        ]
+
+        # Metadata describes all FMA subsets. Filter to the files in the downloaded
+        # archive before encoding labels so FMA-small has its actual eight classes.
+        available_examples = [
+            (audio_path, label)
+            for audio_path, label in zip(audio_paths, readable_labels)
+            if os.path.isfile(audio_path)
+        ]
+        if not available_examples:
+            raise FileNotFoundError(
+                "No FMA audio files matched the metadata under "
+                f"{self.audio_files_path!r}. A standard extraction must retain "
+                "the nested layout fma_small/000/000002.mp3; a legacy flat "
+                "fma_small/000002.mp3 layout is also accepted."
+            )
+        audio_paths, readable_labels = zip(*available_examples)
+
         le = preprocessing.LabelEncoder()
-        labels = le.fit_transform(labels)
-        self.num_classes = len(np.unique(labels))
-        # audio paths: df -> track_id
-        audio_paths = tracks.index.values
-        # 6-digit format for track_id
-        audio_paths = [os.path.join(self.audio_files_path, str(track_id).zfill(6) + '.mp3') for track_id in audio_paths]
-        # remove audio files that do not exist - take care of the labels
-        audio_paths, labels = zip(*[(audio_path, label) for audio_path, label in zip(audio_paths, labels) if os.path.exists(audio_path)])
+        labels = le.fit_transform(readable_labels)
+        self.num_classes = len(le.classes_)
 
         if self.verbose:
             print ("Original metadata shape: ", tracks.shape)
@@ -206,8 +241,6 @@ class FMASmall():
             'accuracy': metrics['accuracy'],
             'f1': metrics['f1'],
         }
-
-
 
 
 

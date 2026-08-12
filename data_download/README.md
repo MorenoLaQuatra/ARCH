@@ -83,6 +83,10 @@ rm fma_small.zip
 rm fma_metadata.zip
 ```
 
+Keep the directory hierarchy created by the official archive. For example, track 2
+should remain at `fma_small/000/000002.mp3`. The loader also accepts an older flat
+layout such as `fma_small/000002.mp3` for backward compatibility.
+
 ### MagnaTagATune
 The split of the dataset is the same as the one used in [Musicnn](https://github.com/jordipons/musicnn-training/tree/master/data/index/mtt).
 

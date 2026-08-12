@@ -16,3 +16,8 @@ configs/ssast_wrapper.py
 arch_eval/evaluation/sequence/*
 SSAST.md
 evaluate_models.sh
+
+# Python-generated caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
